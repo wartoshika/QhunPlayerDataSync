@@ -14,9 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.qhun.mc.playerdatasync.database;
+package de.qhun.mc.playerdatasync.database.mysql;
 
 import de.qhun.mc.playerdatasync.config.MysqlConfiguration;
+import de.qhun.mc.playerdatasync.database.DatabaseAdapter;
+import de.qhun.mc.playerdatasync.database.DatabaseDialect;
 import java.sql.Driver;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -51,5 +53,16 @@ public class MysqlAdapter extends DatabaseAdapter {
     public Class<? extends Driver> getJdbcDriverClass() {
 
         return com.mysql.jdbc.Driver.class;
+    }
+
+    /**
+     * get the mysql database dialect
+     *
+     * @return
+     */
+    @Override
+    protected DatabaseDialect getDatabaseDialect() {
+
+        return new MysqlDialect();
     }
 }

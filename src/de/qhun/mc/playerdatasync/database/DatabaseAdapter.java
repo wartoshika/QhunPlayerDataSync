@@ -35,15 +35,19 @@ public abstract class DatabaseAdapter {
     protected JavaPlugin plugin;
     protected DatabaseConfiguration configuration;
     protected Connection connection;
+    protected DatabaseExecutor databaseExecutor;
 
     public DatabaseAdapter(JavaPlugin plugin) {
 
         this.plugin = plugin;
+        this.databaseExecutor = new DatabaseExecutor(this, this.getDatabaseDialect());
     }
 
     public abstract Class<? extends DatabaseConfiguration> getConfigurationClass();
 
     public abstract Class<? extends Driver> getJdbcDriverClass();
+
+    protected abstract DatabaseDialect getDatabaseDialect();
 
     /**
      * set the database configuration class
@@ -112,7 +116,7 @@ public abstract class DatabaseAdapter {
     public boolean disconnectFromDatabase() {
 
         try {
-            
+
             // log the disconnect
             Main.log.info("Disconnecting from the database backend");
 
@@ -124,5 +128,25 @@ public abstract class DatabaseAdapter {
             // print error
             throw new Error("error while disconnecting from the database", ex);
         }
+    }
+
+    /**
+     * get the current database connection instance
+     *
+     * @return
+     */
+    public Connection getConnection() {
+
+        return this.connection;
+    }
+
+    /**
+     * get access to a specific database dialect and perform queries
+     *
+     * @return
+     */
+    public DatabaseExecutor query() {
+
+        return this.databaseExecutor;
     }
 }

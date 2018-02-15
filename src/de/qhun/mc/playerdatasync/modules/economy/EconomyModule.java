@@ -20,6 +20,7 @@ import de.qhun.mc.playerdatasync.DependencyManager;
 import de.qhun.mc.playerdatasync.config.EconomyConfiguration;
 import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.AbstractModule;
+import java.util.UUID;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.event.player.PlayerJoinEvent;
 
@@ -29,8 +30,14 @@ import org.bukkit.event.player.PlayerJoinEvent;
  */
 public class EconomyModule extends AbstractModule<EconomyConfiguration> {
 
+    // holds the repository to access the player data
+    private final PlayerAccountRepository playerAccountRepository;
+
     public EconomyModule(EventRegister eventRegister) {
         super(eventRegister);
+
+        // setup the repository
+        this.playerAccountRepository = new PlayerAccountRepository();
     }
 
     @Override
@@ -40,6 +47,13 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
         this.eventRegister.addEvent(PlayerJoinEvent.class, (event) -> {
 
             this.logInfoPrefixed("PLAYER JOIN EVENT! Player:" + event.getPlayer().getName());
+
+            // get player domain model
+            UUID playerUuid = event.getPlayer().getUniqueId();
+            PlayerAccount player = this.playerAccountRepository.findByPrimaryOrCreate(PlayerAccount.class, playerUuid);
+
+            this.logInfoPrefixed("Player's uuid is " + player.getUuid());
+
         });
 
         return true;

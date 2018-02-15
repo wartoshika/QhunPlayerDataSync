@@ -16,17 +16,12 @@
  */
 package de.qhun.mc.playerdatasync;
 
-// java imports
-import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
 import de.qhun.mc.playerdatasync.database.DatabaseBackendManager;
+import de.qhun.mc.playerdatasync.database.GenericRepository;
 import de.qhun.mc.playerdatasync.events.EventRegister;
-import de.qhun.mc.playerdatasync.modules.Module;
 import de.qhun.mc.playerdatasync.modules.ModuleComposer;
-import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-// spigot/bukkit imports
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
@@ -39,9 +34,7 @@ import org.bukkit.plugin.PluginManager;
 public final class Main extends JavaPlugin {
 
     public static Logger log;
-    private DependencyManager dependencyManager;
     private ConfigurationManager configurationManager;
-    private HashMap<Class<AbstractConfiguration>, Class<Module>> modules;
     private ModuleComposer moduleComposer;
     private DatabaseBackendManager databaseBackendManager;
     private EventRegister eventRegister;
@@ -78,6 +71,7 @@ public final class Main extends JavaPlugin {
 
             // enable database connection
             this.databaseBackendManager.connectToDatabase();
+            GenericRepository.setDatabaseAdapter(this.databaseBackendManager.getDatabaseAdapter());
 
             // enable bukkit events
             this.eventRegister.registerAvailableBukkitEvents();

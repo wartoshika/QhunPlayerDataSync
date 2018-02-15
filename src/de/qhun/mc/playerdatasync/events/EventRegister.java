@@ -16,12 +16,14 @@
  */
 package de.qhun.mc.playerdatasync.events;
 
+import de.qhun.mc.playerdatasync.Main;
 import org.bukkit.plugin.PluginManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -104,6 +106,10 @@ public class EventRegister {
                 // execute the callback with the bukkit event
                 callable.accept(bukkitEvent);
             } catch (Exception ex) {
+
+                // print error
+                Main.log.warning("Error while Executing an Event callback!");
+                Main.log.log(Level.WARNING, ex.getMessage(), ex);
             }
         });
     }

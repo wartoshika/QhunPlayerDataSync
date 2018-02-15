@@ -18,8 +18,10 @@ package de.qhun.mc.playerdatasync.modules.economy;
 
 import de.qhun.mc.playerdatasync.DependencyManager;
 import de.qhun.mc.playerdatasync.config.EconomyConfiguration;
+import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.AbstractModule;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 /**
  *
@@ -27,8 +29,18 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class EconomyModule extends AbstractModule<EconomyConfiguration> {
 
+    public EconomyModule(EventRegister eventRegister) {
+        super(eventRegister);
+    }
+
     @Override
     public boolean enable(JavaPlugin plugin) {
+
+        // add player join event
+        this.eventRegister.addEvent(PlayerJoinEvent.class, (PlayerJoinEvent event) -> {
+
+            this.logInfoPrefixed("PLAYER JOIN EVENT! Player:" + event.getPlayer().getName());
+        });
 
         return true;
     }

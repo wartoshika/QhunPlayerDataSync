@@ -19,6 +19,7 @@ package de.qhun.mc.playerdatasync.modules;
 import de.qhun.mc.playerdatasync.DependencyManager;
 import de.qhun.mc.playerdatasync.Main;
 import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
+import de.qhun.mc.playerdatasync.events.EventRegister;
 
 /**
  * an abstraction layer for modules
@@ -30,10 +31,12 @@ public abstract class AbstractModule<Config extends AbstractConfiguration> imple
 
     // the current configuration instance
     protected Config configuration;
-    
-    public AbstractModule() {
-        
+    protected EventRegister eventRegister;
+
+    public AbstractModule(EventRegister eventRegister) {
+
         this.logInfoPrefixed("Enable module.");
+        this.eventRegister = eventRegister;
     }
 
     /**
@@ -43,12 +46,14 @@ public abstract class AbstractModule<Config extends AbstractConfiguration> imple
      */
     @Override
     public void setConfiguration(AbstractConfiguration configuration) {
-        
+
         this.configuration = (Config) configuration;
     }
 
     /**
      * check if all dependencies are available
+     *
+     * @param dependencyManager
      */
     @Override
     public void checkDependencies(DependencyManager dependencyManager) {
@@ -62,7 +67,7 @@ public abstract class AbstractModule<Config extends AbstractConfiguration> imple
      * @param message
      */
     protected final void logInfoPrefixed(String message) {
-        
+
         Main.log.info(
                 String.format(
                         "[%s] %s",

@@ -20,6 +20,7 @@ import de.qhun.mc.playerdatasync.DependencyManager;
 import de.qhun.mc.playerdatasync.Main;
 import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
 import de.qhun.mc.playerdatasync.config.EconomyConfiguration;
+import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.economy.EconomyModule;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
@@ -37,6 +38,7 @@ public class ModuleComposer {
     // the plugin and dependency management holder
     private final JavaPlugin plugin;
     private final DependencyManager dependencyManager;
+    private final EventRegister eventRegister;
 
     // storage for all modules
     private final Map<Class<? extends Module>, Class<? extends AbstractConfiguration>> modules;
@@ -49,8 +51,18 @@ public class ModuleComposer {
      *
      * @param plugin
      * @param dependencyManager
+     * @param eventRegister
      */
-    public ModuleComposer(JavaPlugin plugin, DependencyManager dependencyManager) {
+    public ModuleComposer(
+            JavaPlugin plugin,
+            DependencyManager dependencyManager,
+            EventRegister eventRegister
+    ) {
+
+        // var storing
+        this.dependencyManager = dependencyManager;
+        this.plugin = plugin;
+        this.eventRegister = eventRegister;
 
         // init the stack
         this.modules = new HashMap<>();
@@ -58,8 +70,7 @@ public class ModuleComposer {
 
         // ECONOMY MODULE
         this.modules.put(EconomyModule.class, EconomyConfiguration.class);
-        this.dependencyManager = dependencyManager;
-        this.plugin = plugin;
+        
     }
 
     /**
@@ -83,7 +94,7 @@ public class ModuleComposer {
             AbstractConfiguration configurationInstance = ctor.newInstance(this.plugin);
 
             // now construct the module
-            Module moduleInstance = module.newInstance();
+            Module moduleInstance = module.getConstructor(EventRegister.class).newInstance(this.eventRegister);
 
             // attach the configuration
             moduleInstance.setConfiguration(configurationInstance);
@@ -99,7 +110,7 @@ public class ModuleComposer {
 
             // all fine!
             return moduleInstance;
-
+            
         } catch (Exception ex) {
 
             // throw error
@@ -115,7 +126,7 @@ public class ModuleComposer {
         // iterate through all available modules
         for (Map.Entry<Class<? extends Module>, Class<? extends AbstractConfiguration>> module
                 : this.modules.entrySet()) {
-
+            
             try {
 
                 // load that module
@@ -132,7 +143,7 @@ public class ModuleComposer {
                 );
             }
         }
-
+        
     }
 
     /**
@@ -142,7 +153,7 @@ public class ModuleComposer {
      * @return
      */
     public boolean disableModule(Class<? extends Module> module) {
-
+        
         return this.activeModules.get(module).disable(this.plugin);
     }
 

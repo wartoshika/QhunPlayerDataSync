@@ -19,6 +19,7 @@ package de.qhun.mc.playerdatasync;
 // java imports
 import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
 import de.qhun.mc.playerdatasync.database.DatabaseBackendManager;
+import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.Module;
 import de.qhun.mc.playerdatasync.modules.ModuleComposer;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ public final class Main extends JavaPlugin {
     private HashMap<Class<AbstractConfiguration>, Class<Module>> modules;
     private ModuleComposer moduleComposer;
     private DatabaseBackendManager databaseBackendManager;
+    private EventRegister eventRegister;
 
     /**
      * will be called during plugin creation
@@ -58,11 +60,15 @@ public final class Main extends JavaPlugin {
 
         // construct the dependency manager and configuration manager
         this.configurationManager = new ConfigurationManager(this);
-        this.moduleComposer = new ModuleComposer(this, new DependencyManager(this));
+        this.eventRegister = new EventRegister(this);
+        this.moduleComposer = new ModuleComposer(this, new DependencyManager(this), this.eventRegister);
         this.databaseBackendManager = new DatabaseBackendManager(this, configurationManager);
 
         // setup routines
         try {
+
+            // config
+            this.configurationManager.deployDefaultConfigIfNessesary();
 
             // load current configuration
             if (!this.configurationManager.loadConfiguration()) {
@@ -70,11 +76,11 @@ public final class Main extends JavaPlugin {
                 throw new Error("Configuration load error. Check syntax!");
             }
 
-            // config
-            this.configurationManager.deployDefaultConfigIfNessesary();
-            
             // enable database connection
             this.databaseBackendManager.connectToDatabase();
+
+            // enable bukkit events
+            this.eventRegister.registerAvailableBukkitEvents();
 
             // load all modules
             this.moduleComposer.loadAllModules();
@@ -99,7 +105,7 @@ public final class Main extends JavaPlugin {
 
         // disable all modules
         this.moduleComposer.disableAllModules();
-        
+
         // disable database connection
         this.databaseBackendManager.getDatabaseAdapter().disconnectFromDatabase();
     }

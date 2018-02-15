@@ -62,10 +62,11 @@ public class EventRegister {
     /**
      * registers an event
      *
+     * @param <E> the org.bukkit.event.Event
      * @param bukkitEvent the org.bukkit.event.Event
      * @param callback the executed callback function
      */
-    public void addEvent(Class<? extends Event> bukkitEvent, Consumer<? extends Event> callback) {
+    public <E extends Event> void addEvent(Class<E> bukkitEvent, Consumer<E> callback) {
 
         // check if the event allready exists. if not, create a List of callable
         // to avoid nullpointer exeption

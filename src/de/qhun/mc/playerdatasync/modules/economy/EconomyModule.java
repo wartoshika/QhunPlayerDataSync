@@ -37,7 +37,7 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
     public boolean enable(JavaPlugin plugin) {
 
         // add player join event
-        this.eventRegister.addEvent(PlayerJoinEvent.class, (PlayerJoinEvent event) -> {
+        this.eventRegister.addEvent(PlayerJoinEvent.class, (event) -> {
 
             this.logInfoPrefixed("PLAYER JOIN EVENT! Player:" + event.getPlayer().getName());
         });

@@ -1,0 +1,5 @@
+name: QhunPlayerDataSync
+main: de.qhun.mc.playerdatasync.Main
+version: 1.0
+softdepends: [Vault]
+description: Provides a visible oder head name tag for players. uses pex for prefix and suffix.

@@ -1,0 +1,12 @@
+economy:
+    enabled: true
+database:
+    max_thread_count: 4
+    adapter: de.qhun.mc.playerdatasync.database.MysqlAdapter
+    mysql:
+        host: 127.0.0.1
+        port: 3306
+        database: test
+        user: test
+        password: test
+        auto_reconnect: true

@@ -17,17 +17,12 @@
 package de.qhun.mc.playerdatasync.database;
 
 import de.qhun.mc.playerdatasync.Main;
-import de.qhun.mc.playerdatasync.database.decorators.Column;
-import de.qhun.mc.playerdatasync.database.decorators.DecoratorAccessor;
-import de.qhun.mc.playerdatasync.database.decorators.DecoratorGetter;
-import de.qhun.mc.playerdatasync.database.decorators.Table;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
+import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelAttribute;
+import de.qhun.mc.playerdatasync.database.domainmodel.DecoratedDomainModel;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.logging.Level;
 
 /**
  * a generic implementation of a repository
@@ -61,8 +56,8 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
     public boolean store(Entity entity) {
 
         return GenericRepository.database.query().replaceInto(
-                this.getTableName((Class<Entity>) entity.getClass()),
-                this.getFields(entity)
+                DecoratedDomainModel.getTableName((Class<Entity>) entity.getClass()),
+                DecoratedDomainModel.getAttributesWithValues(entity)
         );
     }
 
@@ -76,8 +71,8 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
     public boolean remove(Entity entity) {
 
         return GenericRepository.database.query().delete(
-                this.getTableName((Class<Entity>) entity.getClass()),
-                this.getFields(entity)
+                DecoratedDomainModel.getTableName((Class<Entity>) entity.getClass()),
+                DecoratedDomainModel.getAttributesWithValues(entity)
         );
     }
 
@@ -103,16 +98,27 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
     public Entity findByPrimery(Class<Entity> entityClass, Primary primary) {
 
         // get primary column name
-        Map<String, Primary> data = new HashMap<>();
-        data.put(this.getPrimaryColumnName(entityClass, primary), primary);
+        DomainModelAttribute<Primary> primaryAttribute = DecoratedDomainModel
+                .getAttributes(entityClass)
+                .stream().filter(attribute -> attribute.isPrimary)
+                .findFirst().get();
+
+        // add the primary value
+        primaryAttribute.value = primary;
 
         // search query!
-        List<Map<String, Object>> rows = GenericRepository.database.query().get(
-                this.getTableName(entityClass), (Map<String, Object>) data
+        List<List<DomainModelAttribute>> rows = GenericRepository.database.query().get(
+                DecoratedDomainModel.getTableName(entityClass),
+                entityClass,
+                Arrays.asList(primaryAttribute)
         );
 
-        // @todo: rows.get(0) may return error!
-        return this.transformResultRowToEntity(rows.get(0), entityClass);
+        // null for an empty result set
+        if (rows.isEmpty()) {
+            return null;
+        }
+
+        return this.transformResultToEntity(rows.get(0), entityClass);
     }
 
     /**
@@ -154,123 +160,13 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
     }
 
     /**
-     * get the tablename for the given entity
-     *
-     * @param entity
-     * @return
-     */
-    protected String getTableName(Class<Entity> entity) {
-
-        // get the table decorator
-        Table tableDecorator = DecoratorGetter.getClassDecoratorOrNull(Table.class, entity);
-
-        // check if there is a name available
-        return !"".equals(tableDecorator.name()) ? tableDecorator.name() : entity.getSimpleName().toLowerCase();
-    }
-
-    /**
-     * get all fields that should be stored, updated ...
-     *
-     * @param entity
-     * @return
-     */
-    protected Map<String, Object> getFields(Entity entity) {
-
-        // get storable attributes
-        List<DecoratorAccessor<Column>> fields = DecoratorGetter.getFieldsWithDecorator(Column.class, entity.getClass());
-
-        // create a mapping table
-        Map<String, Object> values = new HashMap<>();
-
-        // iterate over the Fields
-        fields.forEach(accessor -> {
-
-            // get the column name
-            String columnName = !"".equals(accessor.decorator.name()) ? accessor.decorator.name() : accessor.field.getName();
-
-            // get tje column value
-            Object value;
-            try {
-
-                // @todo: use getter methods to get the actual value
-                value = accessor.field.get(entity);
-            } catch (IllegalAccessException | IllegalArgumentException ex) {
-
-                value = null;
-            }
-
-            // store it in the map
-            values.put(columnName, value);
-        });
-
-        return values;
-    }
-
-    /**
-     * searches for the primary attribute on the entity
-     *
-     * @param entity
-     * @return
-     */
-    protected Primary getPrimaryValue(Entity entity) {
-
-        // get fields with primary decorator
-        List<DecoratorAccessor<de.qhun.mc.playerdatasync.database.decorators.Primary>> fields
-                = DecoratorGetter.getFieldsWithDecorator(
-                        de.qhun.mc.playerdatasync.database.decorators.Primary.class, entity.getClass()
-                );
-
-        // field count should be equal to 1!
-        // @todo: add count check
-        try {
-
-            // get the primary value
-            // @todo: use getter methods to get the actual value
-            return (Primary) fields.get(0).field.get(entity);
-        } catch (IllegalAccessException | IllegalArgumentException ex) {
-
-            return null;
-        }
-    }
-
-    /**
-     * get the column name for the primary attribute on entity
-     *
-     * @param entityClass
-     * @param primary
-     * @return
-     */
-    protected String getPrimaryColumnName(Class<Entity> entityClass, Primary primary) {
-
-        // get all columns
-        List<DecoratorAccessor<Column>> fields = DecoratorGetter.getFieldsWithDecorator(Column.class, entityClass);
-
-        // iterate over the Fields
-        for (DecoratorAccessor<Column> accessor : fields) {
-
-            // check if this field also has the primary decorator
-            for (Annotation decorator : accessor.field.getAnnotations()) {
-
-                if (decorator.annotationType().equals(de.qhun.mc.playerdatasync.database.decorators.Primary.class)) {
-
-                    return !"".equals(accessor.decorator.name()) ? accessor.decorator.name() : accessor.field.getName();
-                }
-            }
-
-        }
-
-        Main.log.warning("Could not find entity primary attribute for entity " + entityClass.getName());
-        return null;
-    }
-
-    /**
      * transforms a Map<string,object> to an entity object
      *
-     * @param data
+     * @param attributes
      * @param entityClass
      * @return
      */
-    protected Entity transformResultRowToEntity(Map<String, Object> data, Class<Entity> entityClass) {
+    protected Entity transformResultToEntity(List<DomainModelAttribute> attributes, Class<Entity> entityClass) {
 
         try {
 
@@ -278,17 +174,25 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
             Entity entity = entityClass.newInstance();
 
             // add fields
-            for (Entry<String, Object> value : data.entrySet()) {
+            attributes.forEach(attribute -> {
 
                 // set value of the given field
-                Field field = entityClass.getDeclaredField(value.getKey());
-                field.setAccessible(true);
-                field.set(entity, value.getValue());
-            }
+                try {
+                    attribute.field.setAccessible(true);
+                    attribute.field.set(entity, attribute.value);
+                } catch (IllegalAccessException | IllegalArgumentException | SecurityException ex) {
+
+                    Main.log.warning("Cannot set the domain model field!");
+                    Main.log.log(Level.WARNING, ex.getMessage(), ex);
+                }
+            });
 
             return entity;
 
-        } catch (Exception ex) {
+        } catch (IllegalAccessException | InstantiationException ex) {
+
+            Main.log.warning("Could not create domain model");
+            Main.log.log(Level.WARNING, ex.getMessage(), ex);
         }
 
         return null;

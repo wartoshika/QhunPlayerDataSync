@@ -18,11 +18,13 @@ package de.qhun.mc.playerdatasync.modules.economy;
 
 import de.qhun.mc.playerdatasync.DependencyManager;
 import de.qhun.mc.playerdatasync.config.EconomyConfiguration;
+import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
 import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.AbstractModule;
 import java.util.UUID;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.event.player.PlayerJoinEvent;
+import net.milkbowl.vault.economy.Economy;
 
 /**
  *
@@ -32,16 +34,27 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
 
     // holds the repository to access the player data
     private final PlayerAccountRepository playerAccountRepository;
+    private final Economy economy;
+    private final JavaPlugin plugin;
 
-    public EconomyModule(EventRegister eventRegister) {
+    public EconomyModule(EventRegister eventRegister, DomainModelSetup domainModelSetup, JavaPlugin plugin) {
         super(eventRegister);
 
         // setup the repository
         this.playerAccountRepository = new PlayerAccountRepository();
+        this.plugin = plugin;
+
+        // setup domain models
+        domainModelSetup.setupDomainModel(new Class<?>[]{
+            PlayerAccount.class
+        });
+
+        // get the economy service provider
+        this.economy = plugin.getServer().getServicesManager().getRegistration(Economy.class).getProvider();
     }
 
     @Override
-    public boolean enable(JavaPlugin plugin) {
+    public boolean enable() {
 
         // add player join event
         this.eventRegister.addEvent(PlayerJoinEvent.class, (event) -> {
@@ -52,6 +65,13 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
             UUID playerUuid = event.getPlayer().getUniqueId();
             PlayerAccount player = this.playerAccountRepository.findByPrimaryOrCreate(PlayerAccount.class, playerUuid);
 
+            // if the player is not in the database, add the player
+            if (player.getUuid() == null) {
+
+                player.setUuid(playerUuid);
+                //player.setBalance(this.economy.getBalance(playerUuid));
+            }
+
             this.logInfoPrefixed("Player's uuid is " + player.getUuid());
 
         });
@@ -60,7 +80,7 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
     }
 
     @Override
-    public boolean disable(JavaPlugin plugin) {
+    public boolean disable() {
 
         return true;
     }

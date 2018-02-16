@@ -16,7 +16,8 @@
  */
 package de.qhun.mc.playerdatasync.database;
 
-import java.util.Map;
+import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelAttribute;
+import java.util.List;
 
 /**
  *
@@ -24,19 +25,19 @@ import java.util.Map;
  */
 public interface DatabaseDialect {
 
-    public String createTable(String tableName, Map<String, Object> columns);
+    public String createTable(String tableName, List<DomainModelAttribute> columns);
 
-    public String createTableIfNotExists(String tableName, Map<String, Object> columns);
+    public String createTableIfNotExists(String tableName, List<DomainModelAttribute> columns);
 
-    public String insert(String tableName, Map<String, Object> values);
+    public String insert(String tableName, List<DomainModelAttribute> values);
 
-    public String update(String tableName, Map<String, Object> values);
+    public String update(String tableName, List<DomainModelAttribute> values);
 
-    public String delete(String tableName, Map<String, Object> values);
+    public String delete(String tableName, List<DomainModelAttribute> values);
 
-    public String replaceInto(String tableName, Map<String, Object> values);
+    public String replaceInto(String tableName, List<DomainModelAttribute> values);
     
-    public String get(String tableName, Map<String, Object> values);
+    public String get(String tableName, List<DomainModelAttribute> values);
 
     //public Object getDatabaseRepresentation(Object value);
 }

@@ -20,11 +20,13 @@ import de.qhun.mc.playerdatasync.DependencyManager;
 import de.qhun.mc.playerdatasync.Main;
 import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
 import de.qhun.mc.playerdatasync.config.EconomyConfiguration;
+import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
 import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.economy.EconomyModule;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -39,6 +41,7 @@ public class ModuleComposer {
     private final JavaPlugin plugin;
     private final DependencyManager dependencyManager;
     private final EventRegister eventRegister;
+    private final DomainModelSetup domainModelSetup;
 
     // storage for all modules
     private final Map<Class<? extends Module>, Class<? extends AbstractConfiguration>> modules;
@@ -52,17 +55,20 @@ public class ModuleComposer {
      * @param plugin
      * @param dependencyManager
      * @param eventRegister
+     * @param domainModelSetup
      */
     public ModuleComposer(
             JavaPlugin plugin,
             DependencyManager dependencyManager,
-            EventRegister eventRegister
+            EventRegister eventRegister,
+            DomainModelSetup domainModelSetup
     ) {
 
         // var storing
         this.dependencyManager = dependencyManager;
         this.plugin = plugin;
         this.eventRegister = eventRegister;
+        this.domainModelSetup = domainModelSetup;
 
         // init the stack
         this.modules = new HashMap<>();
@@ -94,7 +100,8 @@ public class ModuleComposer {
             AbstractConfiguration configurationInstance = ctor.newInstance(this.plugin);
 
             // now construct the module
-            Module moduleInstance = module.getConstructor(EventRegister.class).newInstance(this.eventRegister);
+            Module moduleInstance = module.getConstructor(EventRegister.class, DomainModelSetup.class, JavaPlugin.class)
+                    .newInstance(this.eventRegister, this.domainModelSetup, this.plugin);
 
             // attach the configuration
             moduleInstance.setConfiguration(configurationInstance);
@@ -103,7 +110,7 @@ public class ModuleComposer {
             moduleInstance.checkDependencies(this.dependencyManager);
 
             // enable the module
-            moduleInstance.enable(this.plugin);
+            moduleInstance.enable();
 
             // store the loaded module
             this.activeModules.put(module, moduleInstance);
@@ -114,7 +121,7 @@ public class ModuleComposer {
         } catch (Exception ex) {
 
             // throw error
-            throw new Error("Error while loading module " + module.getName(), ex);
+            throw new Error(ex.getMessage(), ex);
         }
     }
 
@@ -141,6 +148,7 @@ public class ModuleComposer {
                                 error.getMessage()
                         )
                 );
+                Main.log.log(Level.SEVERE, error.getMessage(), error);
             }
         }
         
@@ -154,7 +162,7 @@ public class ModuleComposer {
      */
     public boolean disableModule(Class<? extends Module> module) {
         
-        return this.activeModules.get(module).disable(this.plugin);
+        return this.activeModules.get(module).disable();
     }
 
     /**

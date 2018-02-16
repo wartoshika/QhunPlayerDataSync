@@ -17,10 +17,11 @@
 package de.qhun.mc.playerdatasync.modules.economy;
 
 import de.qhun.mc.playerdatasync.database.decorators.Column;
+import de.qhun.mc.playerdatasync.database.decorators.ColumnType;
 import de.qhun.mc.playerdatasync.database.decorators.Entity;
+import de.qhun.mc.playerdatasync.database.decorators.NotNull;
 import de.qhun.mc.playerdatasync.database.decorators.Primary;
 import de.qhun.mc.playerdatasync.database.decorators.Table;
-import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
@@ -33,21 +34,19 @@ import java.util.UUID;
 public class PlayerAccount {
 
     @Primary
-    @Column
+    @Column(size = 36)
     private UUID uuid;
 
-    @Column
-    private BigDecimal balance;
-
-    protected PlayerAccount() {
-    }
+    @Column(type = ColumnType.Double)
+    @NotNull
+    private double balance;
 
     public UUID getUuid() {
 
         return this.uuid;
     }
 
-    public BigDecimal getBalance() {
+    public double getBalance() {
 
         return this.balance;
     }
@@ -57,7 +56,7 @@ public class PlayerAccount {
         this.uuid = uuid;
     }
 
-    public void setBalance(BigDecimal balance) {
+    public void setBalance(double balance) {
 
         this.balance = balance;
     }

@@ -36,7 +36,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class EventRegister {
 
     // the event stack
-    private Map<Class<? extends Event>, List<Consumer<Event>>> eventStack;
+    private final Map<Class<? extends Event>, List<Consumer<Event>>> eventStack;
 
     // plugin storage
     private final JavaPlugin plugin;

@@ -14,22 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.qhun.mc.playerdatasync.modules;
+package de.qhun.mc.playerdatasync.database.decorators;
 
-import de.qhun.mc.playerdatasync.DependencyManager;
-import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  *
  * @author Wrath
  */
-public interface Module {
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface NotNull {
 
-    public boolean enable();
-
-    public boolean disable();
-
-    public void setConfiguration(AbstractConfiguration configuration);
-
-    public void checkDependencies(DependencyManager dependencyManager);
 }

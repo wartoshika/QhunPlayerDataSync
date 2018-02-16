@@ -30,4 +30,10 @@ import java.lang.annotation.Target;
 public @interface Column {
 
     String name() default "";
+
+    ColumnType type() default ColumnType.String;
+
+    int size() default 6;
+    
+    int precision() default 2;
 }

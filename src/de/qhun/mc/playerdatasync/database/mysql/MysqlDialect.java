@@ -17,11 +17,11 @@
 package de.qhun.mc.playerdatasync.database.mysql;
 
 import de.qhun.mc.playerdatasync.database.DatabaseDialect;
+import de.qhun.mc.playerdatasync.database.DialectFields;
+import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelAttribute;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  *
@@ -29,61 +29,71 @@ import java.util.Map.Entry;
  */
 public class MysqlDialect implements DatabaseDialect {
 
-    @Override
-    public String createTable(String tableName, Map<String, Object> columns) {
+    private static final DialectFields fieldConverter = new MysqlFields();
 
-        String baseFormat = "CREATE TABLE `%s` (%s)";
+    @Override
+    public String createTable(String tableName, List<DomainModelAttribute> columns) {
+
+        String baseFormat = "CREATE TABLE `%s` (%s%s) charset=utf8";
         List<String> columnList = new ArrayList<>();
 
         // iterate through all columns
-        for (Entry<String, Object> column : columns.entrySet()) {
+        columns.forEach(column -> {
 
-            columnList.add(
-                    String.format(
-                            "%s %s",
-                            column.getKey(),
-                            "VARCHAR(30)"
-                    )
-            );
-        }
+            columnList.add(String.format(
+                    "%s %s",
+                    column.columnName,
+                    fieldConverter.convertFromColumnType(column)
+            ));
+        });
+
+        // search for primary existing
+        DomainModelAttribute primary = columns.stream().filter(predicate -> predicate.isPrimary).findFirst().get();
 
         // all together
-        return String.format(baseFormat, tableName, String.join(",", columnList));
+        return String.format(
+                baseFormat, tableName, String.join(",", columnList),
+                primary != null ? ", PRIMARY KEY (`" + primary.columnName + "`)" : ""
+        );
     }
 
     @Override
-    public String createTableIfNotExists(String tableName, Map<String, Object> columns) {
+    public String createTableIfNotExists(String tableName, List<DomainModelAttribute> columns) {
 
-        String baseFormat = "CREATE TABLE IF NOT EXISTS `%s` (%s)";
+        String baseFormat = "CREATE TABLE IF NOT EXISTS `%s` (%s%s) charset=utf8";
         List<String> columnList = new ArrayList<>();
 
         // iterate through all columns
-        for (Entry<String, Object> column : columns.entrySet()) {
+        columns.forEach(column -> {
 
-            columnList.add(
-                    String.format(
-                            "%s %s",
-                            column.getKey(),
-                            "VARCHAR(30)"
-                    )
-            );
-        }
+            columnList.add(String.format(
+                    "%s %s",
+                    column.columnName,
+                    fieldConverter.convertFromColumnType(column)
+            ));
+        });
+
+        // search for primary existing
+        DomainModelAttribute primary = columns.stream().filter(predicate -> predicate.isPrimary).findFirst().get();
 
         // all together
-        return String.format(baseFormat, tableName, String.join(",", columnList));
+        return String.format(
+                baseFormat, tableName, String.join(",", columnList),
+                primary != null ? ", PRIMARY KEY (`" + primary.columnName + "`)" : ""
+        );
     }
 
     @Override
-    public String insert(String tableName, Map<String, Object> values) {
+    public String insert(String tableName, List<DomainModelAttribute> values) {
 
         String baseFormat = "INSERT INTO `%s` (%s) VALUES (%s)";
         List<String> columnList = new ArrayList<>();
 
         // iterate through all columns
-        for (Entry<String, Object> column : values.entrySet()) {
+        values.forEach(value -> {
 
-            columnList.add(column.getKey());
-        }
+            columnList.add(value.columnName);
+        });
 
         // apply as many questionmarks as there are columns
         String valueQuestionmarks = String.join("", Collections.nCopies(columnList.size(), "?,"));
@@ -99,29 +109,49 @@ public class MysqlDialect implements DatabaseDialect {
     }
 
     @Override
-    public String update(String tableName, Map<String, Object> values) {
-
-        return "";
-
-    }
-
-    @Override
-    public String delete(String tableName, Map<String, Object> values) {
+    public String update(String tableName, List<DomainModelAttribute> values) {
 
         return "";
     }
 
     @Override
-    public String replaceInto(String tableName, Map<String, Object> values) {
+    public String delete(String tableName, List<DomainModelAttribute> values) {
+
+        // check if there are values
+        if (values.isEmpty()) {
+
+            throw new Error("There should be values to remove! If you want to truncate the table, use truncate instead!");
+        }
+
+        String baseFormat = "DELETE from `%s` WHERE %s";
+        List<String> columnList = new ArrayList<>();
+
+        // iterate through all columns
+        values.forEach(value -> {
+
+            columnList.add("`" + value.columnName + "`=? AND");
+        });
+
+        // all together
+        return String.format(
+                baseFormat,
+                tableName,
+                // join all where clauses and remove the last AND chars
+                String.join("", columnList).replaceFirst("....$", "")
+        );
+    }
+
+    @Override
+    public String replaceInto(String tableName, List<DomainModelAttribute> values) {
 
         String baseFormat = "REPLACE INTO `%s` (%s) VALUES (%s)";
         List<String> columnList = new ArrayList<>();
 
         // iterate through all columns
-        for (Entry<String, Object> column : values.entrySet()) {
+        values.forEach(value -> {
 
-            columnList.add(column.getKey());
-        }
+            columnList.add(value.columnName);
+        });
 
         // apply as many questionmarks as there are columns
         String valueQuestionmarks = String.join("", Collections.nCopies(columnList.size(), "?,"));
@@ -137,9 +167,9 @@ public class MysqlDialect implements DatabaseDialect {
     }
 
     @Override
-    public String get(String tableName, Map<String, Object> values) {
+    public String get(String tableName, List<DomainModelAttribute> values) {
 
-        String baseFormat = "SELECT * from %s";
+        String baseFormat = "SELECT * from `%s`";
         if (values.size() > 0) {
             baseFormat += " WHERE %s";
         }
@@ -147,11 +177,11 @@ public class MysqlDialect implements DatabaseDialect {
         List<String> columnList = new ArrayList<>();
 
         // iterate through all columns
-        for (Entry<String, Object> column : values.entrySet()) {
+        values.forEach(value -> {
 
-            columnList.add(column.getKey() + "= ? AND");
-        }
-        
+            columnList.add("`" + value.columnName + "`=? AND");
+        });
+
         // all together
         return String.format(
                 baseFormat,

@@ -14,22 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.qhun.mc.playerdatasync.modules;
+package de.qhun.mc.playerdatasync.database;
 
-import de.qhun.mc.playerdatasync.DependencyManager;
-import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
+import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelAttribute;
 
 /**
  *
  * @author Wrath
  */
-public interface Module {
+public interface DialectFields {
 
-    public boolean enable();
-
-    public boolean disable();
-
-    public void setConfiguration(AbstractConfiguration configuration);
-
-    public void checkDependencies(DependencyManager dependencyManager);
+    public String convertFromColumnType(DomainModelAttribute type);
 }

@@ -17,6 +17,7 @@
 package de.qhun.mc.playerdatasync;
 
 import de.qhun.mc.playerdatasync.database.DatabaseBackendManager;
+import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
 import de.qhun.mc.playerdatasync.database.GenericRepository;
 import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.ModuleComposer;
@@ -38,6 +39,7 @@ public final class Main extends JavaPlugin {
     private ModuleComposer moduleComposer;
     private DatabaseBackendManager databaseBackendManager;
     private EventRegister eventRegister;
+    private DomainModelSetup domainModelSetup;
 
     /**
      * will be called during plugin creation
@@ -54,7 +56,7 @@ public final class Main extends JavaPlugin {
         // construct the dependency manager and configuration manager
         this.configurationManager = new ConfigurationManager(this);
         this.eventRegister = new EventRegister(this);
-        this.moduleComposer = new ModuleComposer(this, new DependencyManager(this), this.eventRegister);
+
         this.databaseBackendManager = new DatabaseBackendManager(this, configurationManager);
 
         // setup routines
@@ -72,6 +74,12 @@ public final class Main extends JavaPlugin {
             // enable database connection
             this.databaseBackendManager.connectToDatabase();
             GenericRepository.setDatabaseAdapter(this.databaseBackendManager.getDatabaseAdapter());
+
+            // enable the module composing
+            this.domainModelSetup = new DomainModelSetup(this.databaseBackendManager.getDatabaseAdapter());
+            this.moduleComposer = new ModuleComposer(
+                    this, new DependencyManager(this), this.eventRegister, this.domainModelSetup
+            );
 
             // enable bukkit events
             this.eventRegister.registerAvailableBukkitEvents();

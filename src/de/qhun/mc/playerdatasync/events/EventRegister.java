@@ -67,8 +67,9 @@ public class EventRegister {
      * @param <E> the org.bukkit.event.Event
      * @param bukkitEvent the org.bukkit.event.Event
      * @param callback the executed callback function
+     * @return the reference to remoce this event
      */
-    public <E extends Event> void addEvent(Class<E> bukkitEvent, Consumer<E> callback) {
+    public <E extends Event> int addEvent(Class<E> bukkitEvent, Consumer<E> callback) {
 
         // check if the event allready exists. if not, create a List of callable
         // to avoid nullpointer exeption
@@ -81,7 +82,27 @@ public class EventRegister {
         // add the event to the list
         List<Consumer<Event>> callableStack = this.eventStack.get(bukkitEvent);
         callableStack.add((Consumer<Event>) callback);
+        int reference = callableStack.indexOf(callback);
         this.eventStack.put(bukkitEvent, callableStack);
+
+        // return the reference
+        return reference;
+    }
+
+    /**
+     * removes give given event by naming its reference
+     *
+     * @param <E>
+     * @param bukkitEvent
+     * @param reference
+     */
+    public <E extends Event> void removeEvent(Class<E> bukkitEvent, int reference) {
+
+        // get the callback list
+        List<Consumer<Event>> callbackList = this.eventStack.get(bukkitEvent);
+
+        // remove the given reference
+        callbackList.remove(reference);
     }
 
     /**

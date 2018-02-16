@@ -16,6 +16,7 @@
  */
 package de.qhun.mc.playerdatasync.database.domainmodel;
 
+import de.qhun.mc.playerdatasync.Main;
 import de.qhun.mc.playerdatasync.database.decorators.Column;
 import de.qhun.mc.playerdatasync.database.decorators.ColumnType;
 import de.qhun.mc.playerdatasync.database.decorators.DecoratorAccessor;
@@ -23,10 +24,12 @@ import de.qhun.mc.playerdatasync.database.decorators.DecoratorGetter;
 import de.qhun.mc.playerdatasync.database.decorators.NotNull;
 import de.qhun.mc.playerdatasync.database.decorators.Primary;
 import de.qhun.mc.playerdatasync.database.decorators.Table;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * a class that chaches decorator data from an entity by checking its decorator
@@ -145,5 +148,34 @@ public class DecoratedDomainModel {
 
         // dont cache, just return!
         return attributes;
+    }
+
+    /**
+     * creates an empty entity class
+     *
+     * @param <Entity>
+     * @param entity
+     * @return
+     */
+    public static <Entity extends Object> Entity createEmptyInstance(Class<Entity> entity) {
+
+        // get the protected constructor
+        for (Constructor<?> ctor : entity.getDeclaredConstructors()) {
+
+            // get 0 parameter constructor
+            if (ctor.getParameterCount() == 0) {
+
+                ctor.setAccessible(true);
+                try {
+                    return (Entity) ctor.newInstance();
+                } catch (Exception ex) {
+
+                    Main.log.severe("Try to instantiate a domain model without an empty constructor!");
+                    Main.log.log(Level.SEVERE, ex.getMessage(), ex);
+                }
+            }
+        }
+
+        return null;
     }
 }

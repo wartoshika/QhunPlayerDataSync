@@ -77,6 +77,21 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
     }
 
     /**
+     * updates an entity
+     *
+     * @param entity
+     * @return
+     */
+    @Override
+    public boolean update(Entity entity) {
+
+        return GenericRepository.database.query().update(
+                DecoratedDomainModel.getTableName((Class<Entity>) entity.getClass()),
+                DecoratedDomainModel.getAttributesWithValues(entity)
+        );
+    }
+
+    /**
      * get all entities
      *
      * @return
@@ -95,7 +110,7 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
      * @return
      */
     @Override
-    public Entity findByPrimery(Class<Entity> entityClass, Primary primary) {
+    public Entity findByPrimary(Class<Entity> entityClass, Primary primary) {
 
         // get primary column name
         DomainModelAttribute<Primary> primaryAttribute = DecoratedDomainModel
@@ -130,20 +145,14 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
      */
     public Entity findByPrimaryOrCreate(Class<Entity> entityClass, Primary primary) {
 
-        Entity entity = this.findByPrimery(entityClass, primary);
+        Entity entity = this.findByPrimary(entityClass, primary);
         if (entity == null) {
 
             // create a new entity
-            try {
-                return entityClass.newInstance();
-            } catch (Exception ex) {
-            }
-
-            return null;
+            return DecoratedDomainModel.createEmptyInstance(entityClass);
         }
 
         return entity;
-
     }
 
     /**
@@ -168,33 +177,30 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
      */
     protected Entity transformResultToEntity(List<DomainModelAttribute> attributes, Class<Entity> entityClass) {
 
-        try {
+        // create empty entity
+        Entity entity = DecoratedDomainModel.createEmptyInstance(entityClass);
 
-            // create empty entity
-            Entity entity = entityClass.newInstance();
-
-            // add fields
-            attributes.forEach(attribute -> {
-
-                // set value of the given field
-                try {
-                    attribute.field.setAccessible(true);
-                    attribute.field.set(entity, attribute.value);
-                } catch (IllegalAccessException | IllegalArgumentException | SecurityException ex) {
-
-                    Main.log.warning("Cannot set the domain model field!");
-                    Main.log.log(Level.WARNING, ex.getMessage(), ex);
-                }
-            });
-
+        // null check
+        if (entity == null) {
             return entity;
-
-        } catch (IllegalAccessException | InstantiationException ex) {
-
-            Main.log.warning("Could not create domain model");
-            Main.log.log(Level.WARNING, ex.getMessage(), ex);
         }
 
-        return null;
+        // add fields
+        attributes.forEach(attribute -> {
+
+            // set value of the given field
+            try {
+                Class<?> attributeType = attribute.field.getType();
+
+                attribute.field.setAccessible(true);
+                attribute.field.set(entity, DatatypeCast.cast(attribute.value, attributeType));
+            } catch (IllegalAccessException | IllegalArgumentException | SecurityException ex) {
+
+                Main.log.warning("Cannot set the domain model field!");
+                Main.log.log(Level.WARNING, ex.getMessage(), ex);
+            }
+        });
+
+        return entity;
     }
 }

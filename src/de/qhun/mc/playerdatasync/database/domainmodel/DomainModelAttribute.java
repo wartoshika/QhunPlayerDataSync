@@ -31,7 +31,7 @@ public class DomainModelAttribute<Value extends Object> {
     public Class<? extends Object> modelClass;
     
     // the supported column datatype
-    public ColumnType type = ColumnType.String;
+    public ColumnType type = ColumnType.Object;
 
     // the effective value if the attribute
     public Value value;
@@ -70,6 +70,7 @@ public class DomainModelAttribute<Value extends Object> {
 
         // try getting its value
         try {
+            this.field.setAccessible(true);
             fieldValue = (Value) this.field.get(object);
         } catch (IllegalAccessException | IllegalArgumentException ex) {
 

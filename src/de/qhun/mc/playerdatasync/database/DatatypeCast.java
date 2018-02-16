@@ -16,26 +16,33 @@
  */
 package de.qhun.mc.playerdatasync.database;
 
-import java.util.List;
+import java.util.UUID;
 
 /**
- * a basic repository pattern interface for storing information
+ * a class that is capable of casting different types
  *
  * @author Wrath
- * @param <Entity>
- * @param <Primary>
  */
-public interface Repository<Entity extends Object, Primary> {
+public class DatatypeCast {
 
-    public boolean store(Entity entity);
+    /**
+     * casts a source generic object to a spefific class
+     *
+     * @param <T>
+     * @param source
+     * @param target
+     * @return
+     */
+    public static <T extends Object> T cast(Object source, Class<T> target) {
 
-    public boolean remove(Entity entity);
-    
-    public boolean update(Entity entity);
+        if (target.equals(UUID.class)) {
 
-    public List<Entity> findAll();
+            return (T) UUID.fromString(source.toString());
+        } else {
 
-    public Entity findByPrimary(Class<Entity> entityClass, Primary primary);
+            // try a generic java cast
+            return (T) source;
+        }
+    }
 
-    public boolean has(Class<Entity> entityClass, Primary primary);
 }

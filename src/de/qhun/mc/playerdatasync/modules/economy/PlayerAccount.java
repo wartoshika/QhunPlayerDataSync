@@ -41,6 +41,14 @@ public class PlayerAccount {
     @NotNull
     private double balance;
 
+    protected PlayerAccount() {
+    }
+
+    public PlayerAccount(UUID uuid) {
+
+        this.uuid = uuid;
+    }
+
     public UUID getUuid() {
 
         return this.uuid;
@@ -49,11 +57,6 @@ public class PlayerAccount {
     public double getBalance() {
 
         return this.balance;
-    }
-
-    public void setUuid(UUID uuid) {
-
-        this.uuid = uuid;
     }
 
     public void setBalance(double balance) {

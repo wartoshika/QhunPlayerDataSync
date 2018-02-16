@@ -356,6 +356,9 @@ public class DatabaseExecutor {
                         case Date:
                             statement.setDate(i[0], (Date) value);
                             break;
+                        case Object:
+                            statement.setObject(i[0], value);
+                            break;
                         default:
                         case String:
                             statement.setString(i[0], value.toString());
@@ -399,11 +402,13 @@ public class DatabaseExecutor {
                 case BigDecimal:
                     return result.getBigDecimal(column);
                 case Double:
-                    return result.getDate(column);
+                    return result.getDouble(column);
                 case Integer:
                     return result.getInt(column);
                 case Date:
                     return result.getDate(column);
+                case Object:
+                    return result.getObject(column);
                 default:
                 case String:
                     return result.getString(column);

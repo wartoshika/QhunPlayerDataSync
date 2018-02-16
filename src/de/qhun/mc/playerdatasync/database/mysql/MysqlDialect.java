@@ -104,7 +104,7 @@ public class MysqlDialect implements DatabaseDialect {
                 tableName,
                 String.join(",", columnList),
                 // remove last char if available
-                valueQuestionmarks.replaceFirst(".$", valueQuestionmarks)
+                valueQuestionmarks.replaceFirst(".$", "")
         );
     }
 
@@ -162,7 +162,7 @@ public class MysqlDialect implements DatabaseDialect {
                 tableName,
                 String.join(",", columnList),
                 // remove last char if available
-                valueQuestionmarks.replaceFirst(".$", valueQuestionmarks)
+                valueQuestionmarks.replaceFirst(".$", "")
         );
     }
 

@@ -27,5 +27,6 @@ public enum ColumnType {
     Integer,
     Double,
     BigDecimal,
-    Date
+    Date,
+    Object
 }

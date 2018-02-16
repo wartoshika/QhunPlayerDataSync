@@ -51,6 +51,9 @@ public class MysqlFields implements DialectFields {
             case Integer:
                 types.add("INT(" + attribute.size + ")");
                 break;
+            case Object:
+                types.add("BLOB");
+                break;
             default:
             case String:
                 types.add("VARCHAR(" + attribute.size + ")");

@@ -50,4 +50,14 @@ public class InventoryConfiguration extends AbstractConfiguration implements Mod
 
         return this.getConfiguration().getBoolean("inventory.ender_chest");
     }
+
+    /**
+     * get the branch name
+     *
+     * @return
+     */
+    public String getBranchName() {
+
+        return this.getConfiguration().getString("inventory.branch");
+    }
 }

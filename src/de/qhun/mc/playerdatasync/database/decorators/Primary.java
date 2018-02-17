@@ -29,4 +29,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Primary {
 
+    // the index of the primary attribute.
+    // if there are more than one primary values
+    // increment them in the order of the primary generic type!
+    int index() default 0;
 }

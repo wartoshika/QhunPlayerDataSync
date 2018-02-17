@@ -17,14 +17,14 @@
 package de.qhun.mc.playerdatasync.modules.inventory;
 
 import de.qhun.mc.playerdatasync.database.GenericRepository;
-import java.util.UUID;
+import java.util.List;
 
 /**
  * the player inventory repository
  *
  * @author Wrath
  */
-public class PlayerInventoryRepository extends GenericRepository<PlayerInventory, UUID> {
+public class PlayerInventoryRepository extends GenericRepository<PlayerInventory, List<?>> {
 
     /**
      * get the player account class

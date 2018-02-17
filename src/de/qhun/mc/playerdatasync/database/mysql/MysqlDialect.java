@@ -22,6 +22,7 @@ import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelAttribute;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -48,12 +49,23 @@ public class MysqlDialect implements DatabaseDialect {
         });
 
         // search for primary existing
-        DomainModelAttribute primary = columns.stream().filter(predicate -> predicate.isPrimary).findFirst().get();
+        List<DomainModelAttribute> primary = columns.stream()
+                .filter(predicate -> predicate.isPrimary)
+                .collect(Collectors.toList());
+
+        String primaryKey = "";
+        if (primary.size() > 0) {
+
+            // get all column names from the primary keys
+            primaryKey = "`";
+            primaryKey += String.join("`,`", primary.stream().map(p -> p.columnName).collect(Collectors.toList()));
+            primaryKey += "`";
+        }
 
         // all together
         return String.format(
                 baseFormat, tableName, String.join(",", columnList),
-                primary != null ? ", PRIMARY KEY (`" + primary.columnName + "`)" : ""
+                !"".equals(primaryKey) ? ", PRIMARY KEY (" + primaryKey + ")" : ""
         );
     }
 
@@ -74,12 +86,23 @@ public class MysqlDialect implements DatabaseDialect {
         });
 
         // search for primary existing
-        DomainModelAttribute primary = columns.stream().filter(predicate -> predicate.isPrimary).findFirst().get();
+        List<DomainModelAttribute> primary = columns.stream()
+                .filter(predicate -> predicate.isPrimary)
+                .collect(Collectors.toList());
+
+        String primaryKey = "";
+        if (primary.size() > 0) {
+
+            // get all column names from the primary keys
+            primaryKey = "`";
+            primaryKey += String.join("`,`", primary.stream().map(p -> p.columnName).collect(Collectors.toList()));
+            primaryKey += "`";
+        }
 
         // all together
         return String.format(
                 baseFormat, tableName, String.join(",", columnList),
-                primary != null ? ", PRIMARY KEY (`" + primary.columnName + "`)" : ""
+                !"".equals(primaryKey) ? ", PRIMARY KEY (" + primaryKey + ")" : ""
         );
     }
 
@@ -179,7 +202,7 @@ public class MysqlDialect implements DatabaseDialect {
         // iterate through all columns
         values.forEach(value -> {
 
-            columnList.add("`" + value.columnName + "`=? AND");
+            columnList.add("`" + value.columnName + "`=? AND ");
         });
 
         // all together
@@ -187,7 +210,7 @@ public class MysqlDialect implements DatabaseDialect {
                 baseFormat,
                 tableName,
                 // join all where clauses and remove the last AND chars
-                String.join("", columnList).replaceFirst("....$", "")
+                String.join("", columnList).replaceFirst(".....$", "")
         );
     }
 

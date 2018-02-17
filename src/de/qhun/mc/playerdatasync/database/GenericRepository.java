@@ -22,7 +22,9 @@ import de.qhun.mc.playerdatasync.database.domainmodel.DecoratedDomainModel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * a generic implementation of a repository
@@ -130,7 +132,7 @@ public abstract class GenericRepository<Entity, Primary> implements Repository<E
     }
 
     /**
-     * find one entity by its primary attribute
+     * find one entity by its primary attribute/attributes
      *
      * @param primary
      * @return
@@ -138,20 +140,56 @@ public abstract class GenericRepository<Entity, Primary> implements Repository<E
     @Override
     public Entity findByPrimary(Primary primary) {
 
-        // get primary column name
-        DomainModelAttribute<Primary> primaryAttribute = DecoratedDomainModel
-                .getAttributes(this.getEntityClass())
-                .stream().filter(attribute -> attribute.isPrimary)
-                .findFirst().get();
+        List<DomainModelAttribute> queryList = new ArrayList<>();
 
-        // add the primary value
-        primaryAttribute.value = primary;
+        // primary can be a normal object or a list
+        // if it is a list, the primary contains more values
+        // we should extract them
+        if (primary instanceof List) {
+
+            // cast to list
+            List<?> primaryList = (List<?>) primary;
+
+            // get primary columns and
+            // fill the values. the primary index of the decorator is the
+            // index of the list!
+            queryList = DecoratedDomainModel
+                    .getAttributes(this.getEntityClass())
+                    .stream().filter(attribute -> attribute.isPrimary)
+                    .map(primaryAttribute -> {
+
+                        // get the index from the decorator and use this
+                        // index to get the list item as value
+                        primaryAttribute.value = primaryList.get(
+                                primaryAttribute.field.getAnnotation(
+                                        de.qhun.mc.playerdatasync.database.decorators.Primary.class
+                                ).index()
+                        );
+
+                        return primaryAttribute;
+                    })
+                    .collect(Collectors.toList());
+
+        } else {
+
+            // get primary column name
+            DomainModelAttribute<Primary> primaryAttribute = DecoratedDomainModel
+                    .getAttributes(this.getEntityClass())
+                    .stream().filter(attribute -> attribute.isPrimary)
+                    .findFirst().get();
+
+            // add the primary value
+            primaryAttribute.value = primary;
+
+            // stack this up
+            queryList.add(primaryAttribute);
+        }
 
         // search query!
         List<List<DomainModelAttribute>> rows = GenericRepository.database.query().get(
                 DecoratedDomainModel.getTableName(this.getEntityClass()),
                 this.getEntityClass(),
-                Arrays.asList(primaryAttribute)
+                queryList
         );
 
         // null for an empty result set
@@ -163,7 +201,8 @@ public abstract class GenericRepository<Entity, Primary> implements Repository<E
     }
 
     /**
-     * find one entity by its primary attribute or creates an empty model
+     * find one entity by its primary attribute/attributes or creates an empty
+     * model
      *
      * @param primary
      * @return

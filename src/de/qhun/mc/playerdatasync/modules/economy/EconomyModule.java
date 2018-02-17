@@ -37,13 +37,13 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
     private PlayerAccountRepository playerAccountRepository;
     private Economy economy;
     private EconomySync sync;
-    
+
     @Autoload
     private ServiceProvider serviceProvider;
-    
-    private int eventReferenceJoin;
-    private int eventReferenceQuit;
-    
+
+    private UUID eventReferenceJoin;
+    private UUID eventReferenceQuit;
+
     @Override
     public void construct() {
 
@@ -64,7 +64,7 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
                 this.configuration.getSyncInterval()
         );
     }
-    
+
     @Override
     public boolean enable() {
 
@@ -74,14 +74,14 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
 
         // start sync process if enabled
         if (this.configuration.isSyncEnabled()) {
-            
+
             this.sync.startSync();
         }
 
         // add player leave event
         return true;
     }
-    
+
     @Override
     public boolean disable() {
 
@@ -94,22 +94,22 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
 
         // stop sync in enabled
         if (this.configuration.isSyncEnabled()) {
-            
+
             this.sync.stopSync();
         }
 
         // save the balance for all online player
         this.plugin.getServer().getOnlinePlayers().forEach(this::saveBalance);
-        
+
         return true;
     }
-    
+
     @Override
     public void checkDependencies(DependencyManager dependencyManager) {
 
         // checking vault and eco system
         if (!dependencyManager.isEconomyAvailable()) {
-            
+
             throw new Error(
                     "I could not find any Vault and/or Eco System. Please be sure to add Vault and a compatible ecosystem to your Minecraft server."
             );
@@ -149,7 +149,7 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
      * @param event
      */
     private void onPlayerQuit(PlayerQuitEvent event) {
-        
+
         this.saveBalance(event.getPlayer());
     }
 
@@ -166,7 +166,7 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
 
         // check if a player instance exists
         if (playerAccount == null) {
-            
+
             playerAccount = new PlayerAccount(player.getUniqueId());
         }
 

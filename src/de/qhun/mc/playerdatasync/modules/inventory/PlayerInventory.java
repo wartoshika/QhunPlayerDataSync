@@ -19,6 +19,7 @@ package de.qhun.mc.playerdatasync.modules.inventory;
 import de.qhun.mc.playerdatasync.database.decorators.Column;
 import de.qhun.mc.playerdatasync.database.decorators.ColumnType;
 import de.qhun.mc.playerdatasync.database.decorators.Entity;
+import de.qhun.mc.playerdatasync.database.decorators.NotNull;
 import de.qhun.mc.playerdatasync.database.decorators.Primary;
 import de.qhun.mc.playerdatasync.database.decorators.Table;
 import java.util.UUID;
@@ -34,9 +35,14 @@ import org.bukkit.inventory.Inventory;
 @Table
 public class PlayerInventory {
 
-    @Primary
+    @Primary(index = 0)
     @Column(size = 36)
     private UUID uuid;
+
+    @Primary(index = 1)
+    @NotNull
+    @Column(size = 24)
+    private String branch;
 
     @Column(type = ColumnType.Text)
     private String inventory;
@@ -47,9 +53,10 @@ public class PlayerInventory {
     protected PlayerInventory() {
     }
 
-    public PlayerInventory(UUID uuid) {
+    public PlayerInventory(UUID uuid, String branch) {
 
         this.uuid = uuid;
+        this.branch = branch;
     }
 
     public UUID getUuid() {
@@ -78,6 +85,16 @@ public class PlayerInventory {
     }
 
     /**
+     * get the branch name
+     *
+     * @return
+     */
+    public String getBranch() {
+
+        return this.branch;
+    }
+
+    /**
      * set the normal inventory for the player
      *
      * @param inventory
@@ -95,6 +112,16 @@ public class PlayerInventory {
     public void setEnderChest(Inventory enderChest) {
 
         this.enderChest = InventorySerializer.serialize(enderChest, InventoryType.ENDER_CHEST);
+    }
+
+    /**
+     * set the branch name
+     *
+     * @param branch
+     */
+    public void setBranch(String branch) {
+
+        this.branch = branch;
     }
 
 }

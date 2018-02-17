@@ -1,5 +1,7 @@
 name: QhunPlayerDataSync
+author: Wartoshika
+website: http://mc.qhun.de
 main: de.qhun.mc.playerdatasync.Main
 version: 1.0
-softdepends: [Vault]
+softdepend: [Vault]
 description: Provides a visible oder head name tag for players. uses pex for prefix and suffix.

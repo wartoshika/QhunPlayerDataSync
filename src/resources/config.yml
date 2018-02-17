@@ -19,6 +19,11 @@ economy:
 inventory:
     # should this module be enabled?
     enabled: true
+    # every server instance with the same branch name will share the inventory data.
+    # different branches provide the possibility of having miltiple gamemodes available.
+    # this also effects the ender chest!
+    # the name of the branch should have max 24 chars!
+    branch: main
     # should i sync the ender chest content over differnet servers?
     ender_chest: true
 # the database connection

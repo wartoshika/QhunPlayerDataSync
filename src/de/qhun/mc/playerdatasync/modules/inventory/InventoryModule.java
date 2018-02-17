@@ -17,6 +17,7 @@
 package de.qhun.mc.playerdatasync.modules.inventory;
 
 import de.qhun.mc.playerdatasync.modules.AbstractModule;
+import java.util.Arrays;
 import java.util.UUID;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -32,8 +33,8 @@ public class InventoryModule extends AbstractModule<InventoryConfiguration> {
     // the repository
     private PlayerInventoryRepository repository;
 
-    private int eventReferenceJoin;
-    private int eventReferenceQuit;
+    private UUID eventReferenceJoin;
+    private UUID eventReferenceQuit;
 
     @Override
     public void construct() {
@@ -95,7 +96,10 @@ public class InventoryModule extends AbstractModule<InventoryConfiguration> {
 
             // get every inventory for the player by searching by uuid
             UUID playerUuid = event.getPlayer().getUniqueId();
-            PlayerInventory inventory = this.repository.findByPrimary(playerUuid);
+            PlayerInventory inventory = this.repository.findByPrimary(
+                    // branch name and uuid are the keys! in that order!
+                    Arrays.asList(playerUuid, this.configuration.getBranchName())
+            );
 
             // check if the player is allready in the database
             if (inventory != null) {
@@ -134,12 +138,17 @@ public class InventoryModule extends AbstractModule<InventoryConfiguration> {
         // store all inventories
         // get player from db
         UUID playerUuid = player.getUniqueId();
-        PlayerInventory inventory = this.repository.findByPrimary(playerUuid);
+        PlayerInventory inventory = this.repository.findByPrimary(
+                Arrays.asList(playerUuid, this.configuration.getBranchName())
+        );
 
         // check if a player instance exists
         if (inventory == null) {
 
-            inventory = new PlayerInventory(player.getUniqueId());
+            inventory = new PlayerInventory(
+                    player.getUniqueId(),
+                    this.configuration.getBranchName()
+            );
         }
 
         // save inventory

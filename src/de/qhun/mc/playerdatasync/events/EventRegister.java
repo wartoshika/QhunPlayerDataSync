@@ -20,8 +20,8 @@ import de.qhun.mc.playerdatasync.Main;
 import org.bukkit.plugin.PluginManager;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import org.bukkit.event.Event;
@@ -36,7 +36,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class EventRegister {
 
     // the event stack
-    private final Map<Class<? extends Event>, List<Consumer<Event>>> eventStack;
+    private final Map<Class<? extends Event>, Map<UUID, Consumer<Event>>> eventStack;
 
     // plugin storage
     private final JavaPlugin plugin;
@@ -69,20 +69,23 @@ public class EventRegister {
      * @param callback the executed callback function
      * @return the reference to remoce this event
      */
-    public <E extends Event> int addEvent(Class<E> bukkitEvent, Consumer<E> callback) {
+    public <E extends Event> UUID addEvent(Class<E> bukkitEvent, Consumer<E> callback) {
 
         // check if the event allready exists. if not, create a List of callable
         // to avoid nullpointer exeption
         if (this.eventStack.get(bukkitEvent) == null) {
 
             // create a new list
-            this.eventStack.put(bukkitEvent, new ArrayList<>());
+            this.eventStack.put(bukkitEvent, new HashMap<>());
         }
 
         // add the event to the list
-        List<Consumer<Event>> callableStack = this.eventStack.get(bukkitEvent);
-        callableStack.add((Consumer<Event>) callback);
-        int reference = callableStack.indexOf(callback);
+        Map<UUID, Consumer<Event>> callableStack = this.eventStack.get(bukkitEvent);
+
+        // generate a reference uuid
+        UUID reference = UUID.randomUUID();
+
+        callableStack.put(reference, (Consumer<Event>) callback);
         this.eventStack.put(bukkitEvent, callableStack);
 
         // return the reference
@@ -96,10 +99,10 @@ public class EventRegister {
      * @param bukkitEvent
      * @param reference
      */
-    public <E extends Event> void removeEvent(Class<E> bukkitEvent, int reference) {
+    public <E extends Event> void removeEvent(Class<E> bukkitEvent, UUID reference) {
 
         // get the callback list
-        List<Consumer<Event>> callbackList = this.eventStack.get(bukkitEvent);
+        Map<UUID, Consumer<Event>> callbackList = this.eventStack.get(bukkitEvent);
 
         // remove the given reference
         callbackList.remove(reference);
@@ -118,10 +121,10 @@ public class EventRegister {
             return;
         }
         // get the list
-        List<Consumer<Event>> callableStack = this.eventStack.get(bukkitEvent.getClass());
+        Map<UUID, Consumer<Event>> callableStack = this.eventStack.get(bukkitEvent.getClass());
 
         // execute each function
-        callableStack.forEach((callable) -> {
+        callableStack.values().forEach((callable) -> {
             try {
 
                 // execute the callback with the bukkit event

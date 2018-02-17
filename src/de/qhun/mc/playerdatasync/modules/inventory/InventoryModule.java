@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Wartoshika <dev@qhun.de>
+ * Copyright (C) 2018 Wrath
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,29 +14,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.qhun.mc.playerdatasync.config;
+package de.qhun.mc.playerdatasync.modules.inventory;
 
-import de.qhun.mc.playerdatasync.Main;
+import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
+import de.qhun.mc.playerdatasync.events.EventRegister;
+import de.qhun.mc.playerdatasync.modules.AbstractModule;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * a class that represents the current configuration state for economy things
  *
- * @author Wartoshika
+ * @author Wrath
  */
-public class EconomyConfiguration extends AbstractConfiguration {
+public class InventoryModule extends AbstractModule<InventoryConfiguration> {
 
-    public EconomyConfiguration(Main plugin) {
-        super(plugin);
+    public InventoryModule(EventRegister eventRegister, DomainModelSetup domainModelSetup, JavaPlugin plugin) {
+        super(eventRegister, domainModelSetup, plugin);
     }
 
-    /**
-     * is the economy sync enabled?
-     *
-     * @return
-     */
-    public boolean isEnabled() {
+    @Override
+    public boolean enable() {
 
-        return this.getConfiguration().getBoolean("economy.enabled");
+    }
+
+    @Override
+    public boolean disable() {
+
     }
 
 }

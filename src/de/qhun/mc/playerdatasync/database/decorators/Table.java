@@ -30,5 +30,5 @@ import java.lang.annotation.Target;
 public @interface Table {
 
     // the name of the table
-    String name();
+    String name() default "";
 }

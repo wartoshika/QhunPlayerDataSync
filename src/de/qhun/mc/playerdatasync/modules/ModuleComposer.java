@@ -19,7 +19,7 @@ package de.qhun.mc.playerdatasync.modules;
 import de.qhun.mc.playerdatasync.DependencyManager;
 import de.qhun.mc.playerdatasync.Main;
 import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
-import de.qhun.mc.playerdatasync.config.EconomyConfiguration;
+import de.qhun.mc.playerdatasync.modules.economy.EconomyConfiguration;
 import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
 import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.economy.EconomyModule;

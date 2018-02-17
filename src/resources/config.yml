@@ -1,12 +1,53 @@
+# the economy module that allows to save the current money
+# of the player between servers
 economy:
+    # should this module be enabled?
     enabled: true
+    # if a player if offline, should i check if on this server is any
+    # activity on the player's money? example could be a shop that automaticly
+    # deposits money to the players bank account
+    sync:
+        # should the sync be enabled? if not, the money will only be synced during 
+        # player join and player quit
+        enabled: true
+        # the interval in seconds to poll if there is any change.
+        # this meight cause performance issues if this value is to low
+        interval: 300
+# the inventory module that allows to sync the player's inventory and
+# chest content between servers
+inventory:
+    # should this module be enabled?
+    enabled: true
+    # you should enable this flag if there is a plugin that changes
+    # the player's inventory when changing his/her gamemode.
+    # this module will watch for gamemode changes and stores the items
+    # in the correct gamemode
+    different_gamemodes_inventory: false
+    # should i sync the ender chest content over differnet servers?
+    ender_chest: true
+# the database connection
 database:
+    # set the maximun allowed threads for transactions on the database
+    # backend
     max_thread_count: 4
+    # the adapter to use. default for mysql is: de.qhun.mc.playerdatasync.database.mysql.MysqlAdapter
+    # if you want to use a different database management system, change the adapter here.
+    # i will update this comment with all available adapters. currently only mysql is supported.
     adapter: de.qhun.mc.playerdatasync.database.mysql.MysqlAdapter
+    # the table prefix for all tables that will be created
+    table_prefix: qhun_
+    # the mysql adapter part
     mysql:
+        # the database host server
         host: 127.0.0.1
+        # the port to connect on. mysql default is 3306
         port: 3306
+        # the database name. you should create the database for me, i'll create all tables
         database: test
+        # the user that has access to the database
         user: test
+        # the passwort according to the above's user
         password: test
+        # should i auto reconnect to the database if there is any connection
+        # issue?
         auto_reconnect: true

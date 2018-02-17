@@ -23,6 +23,7 @@ import de.qhun.mc.playerdatasync.database.decorators.NotNull;
 import de.qhun.mc.playerdatasync.database.decorators.Primary;
 import de.qhun.mc.playerdatasync.database.decorators.Table;
 import java.util.UUID;
+import org.bukkit.OfflinePlayer;
 
 /**
  * a domain model for player's economy balance
@@ -30,7 +31,7 @@ import java.util.UUID;
  * @author Wrath
  */
 @Entity
-@Table(name = "account")
+@Table
 public class PlayerAccount {
 
     @Primary
@@ -62,5 +63,14 @@ public class PlayerAccount {
     public void setBalance(double balance) {
 
         this.balance = balance;
+    }
+
+    /**
+     * converts this instance to a bukkit player instance
+     *
+     * @return
+     */
+    public OfflinePlayer toBukkitPlayer() {
+
     }
 }

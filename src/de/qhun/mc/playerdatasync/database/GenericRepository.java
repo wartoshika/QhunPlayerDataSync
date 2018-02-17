@@ -31,10 +31,17 @@ import java.util.logging.Level;
  * @param <Entity>
  * @param <Primary>
  */
-public class GenericRepository<Entity, Primary> implements Repository<Entity, Primary> {
+public abstract class GenericRepository<Entity, Primary> implements Repository<Entity, Primary> {
 
     // the database holder
     protected static DatabaseAdapter database;
+
+    /**
+     * get the current class of entity
+     *
+     * @return
+     */
+    protected abstract Class<Entity> getEntityClass();
 
     /**
      * set the current active database connection
@@ -105,16 +112,15 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
     /**
      * find one entity by its primary attribute
      *
-     * @param entityClass
      * @param primary
      * @return
      */
     @Override
-    public Entity findByPrimary(Class<Entity> entityClass, Primary primary) {
+    public Entity findByPrimary(Primary primary) {
 
         // get primary column name
         DomainModelAttribute<Primary> primaryAttribute = DecoratedDomainModel
-                .getAttributes(entityClass)
+                .getAttributes(this.getEntityClass())
                 .stream().filter(attribute -> attribute.isPrimary)
                 .findFirst().get();
 
@@ -123,8 +129,8 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
 
         // search query!
         List<List<DomainModelAttribute>> rows = GenericRepository.database.query().get(
-                DecoratedDomainModel.getTableName(entityClass),
-                entityClass,
+                DecoratedDomainModel.getTableName(this.getEntityClass()),
+                this.getEntityClass(),
                 Arrays.asList(primaryAttribute)
         );
 
@@ -133,23 +139,22 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
             return null;
         }
 
-        return this.transformResultToEntity(rows.get(0), entityClass);
+        return this.transformResultToEntity(rows.get(0));
     }
 
     /**
      * find one entity by its primary attribute or creates an empty model
      *
-     * @param entityClass
      * @param primary
      * @return
      */
-    public Entity findByPrimaryOrCreate(Class<Entity> entityClass, Primary primary) {
+    public Entity findByPrimaryOrCreate(Primary primary) {
 
-        Entity entity = this.findByPrimary(entityClass, primary);
+        Entity entity = this.findByPrimary(primary);
         if (entity == null) {
 
             // create a new entity
-            return DecoratedDomainModel.createEmptyInstance(entityClass);
+            return DecoratedDomainModel.createEmptyInstance(this.getEntityClass());
         }
 
         return entity;
@@ -158,12 +163,11 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
     /**
      * checks if the given entity is persent
      *
-     * @param entityClass
      * @param primary
      * @return
      */
     @Override
-    public boolean has(Class<Entity> entityClass, Primary primary) {
+    public boolean has(Primary primary) {
 
         return false;
     }
@@ -172,13 +176,12 @@ public class GenericRepository<Entity, Primary> implements Repository<Entity, Pr
      * transforms a Map<string,object> to an entity object
      *
      * @param attributes
-     * @param entityClass
      * @return
      */
-    protected Entity transformResultToEntity(List<DomainModelAttribute> attributes, Class<Entity> entityClass) {
+    protected Entity transformResultToEntity(List<DomainModelAttribute> attributes) {
 
         // create empty entity
-        Entity entity = DecoratedDomainModel.createEmptyInstance(entityClass);
+        Entity entity = DecoratedDomainModel.createEmptyInstance(this.getEntityClass());
 
         // null check
         if (entity == null) {

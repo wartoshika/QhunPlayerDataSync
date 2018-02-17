@@ -19,7 +19,9 @@ package de.qhun.mc.playerdatasync.modules;
 import de.qhun.mc.playerdatasync.DependencyManager;
 import de.qhun.mc.playerdatasync.Main;
 import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
+import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
 import de.qhun.mc.playerdatasync.events.EventRegister;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * an abstraction layer for modules
@@ -31,12 +33,16 @@ public abstract class AbstractModule<Config extends AbstractConfiguration> imple
 
     // the current configuration instance
     protected Config configuration;
-    protected EventRegister eventRegister;
+    protected final EventRegister eventRegister;
+    protected final JavaPlugin plugin;
+    protected final DomainModelSetup domainModelSetup;
 
-    public AbstractModule(EventRegister eventRegister) {
+    public AbstractModule(EventRegister eventRegister, DomainModelSetup domainModelSetup, JavaPlugin plugin) {
 
         this.logInfoPrefixed("Enable module.");
         this.eventRegister = eventRegister;
+        this.plugin = plugin;
+        this.domainModelSetup = domainModelSetup;
     }
 
     /**

@@ -14,26 +14,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.qhun.mc.playerdatasync.modules.economy;
+package de.qhun.mc.playerdatasync.modules.inventory;
 
-import de.qhun.mc.playerdatasync.database.GenericRepository;
-import java.util.UUID;
+import de.qhun.mc.playerdatasync.Main;
+import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
 
 /**
- * the repository to access the player's account data
  *
  * @author Wrath
  */
-public class PlayerAccountRepository extends GenericRepository<PlayerAccount, UUID> {
+public class InventoryConfiguration extends AbstractConfiguration {
+
+    public InventoryConfiguration(Main plugin) {
+        super(plugin);
+    }
 
     /**
-     * get the player account class
+     * is the inventory sync enabled?
      *
      * @return
      */
-    @Override
-    protected Class<PlayerAccount> getEntityClass() {
+    public boolean isEnabled() {
 
-        return PlayerAccount.class;
+        return this.getConfiguration().getBoolean("inventory.enabled");
     }
 }

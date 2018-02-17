@@ -35,7 +35,7 @@ public interface Repository<Entity extends Object, Primary> {
 
     public List<Entity> findAll();
 
-    public Entity findByPrimary(Class<Entity> entityClass, Primary primary);
+    public Entity findByPrimary(Primary primary);
 
-    public boolean has(Class<Entity> entityClass, Primary primary);
+    public boolean has(Primary primary);
 }

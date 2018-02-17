@@ -14,26 +14,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.qhun.mc.playerdatasync.modules.economy;
+package de.qhun.mc.playerdatasync.modules.inventory;
 
-import de.qhun.mc.playerdatasync.database.GenericRepository;
+import de.qhun.mc.playerdatasync.database.decorators.Column;
+import de.qhun.mc.playerdatasync.database.decorators.Entity;
+import de.qhun.mc.playerdatasync.database.decorators.Primary;
+import de.qhun.mc.playerdatasync.database.decorators.Table;
 import java.util.UUID;
 
 /**
- * the repository to access the player's account data
+ * the player's normal inventory
  *
  * @author Wrath
  */
-public class PlayerAccountRepository extends GenericRepository<PlayerAccount, UUID> {
+@Entity
+@Table
+public class PlayerInventory {
 
-    /**
-     * get the player account class
-     *
-     * @return
-     */
-    @Override
-    protected Class<PlayerAccount> getEntityClass() {
+    @Primary
+    @Column(size = 36)
+    private UUID uuid;
 
-        return PlayerAccount.class;
-    }
 }

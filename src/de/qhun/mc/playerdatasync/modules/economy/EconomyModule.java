@@ -17,7 +17,6 @@
 package de.qhun.mc.playerdatasync.modules.economy;
 
 import de.qhun.mc.playerdatasync.DependencyManager;
-import de.qhun.mc.playerdatasync.config.EconomyConfiguration;
 import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
 import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.AbstractModule;
@@ -28,6 +27,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import net.milkbowl.vault.economy.Economy;
 
 /**
+ * the economy module. handles sync the player's money
  *
  * @author Wrath
  */
@@ -36,18 +36,17 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
     // holds the repository to access the player data
     private final PlayerAccountRepository playerAccountRepository;
     private final Economy economy;
-    private final JavaPlugin plugin;
+    private final EconomySync sync;
     private PlayerAccount player;
 
     private int eventReferenceJoin;
     private int eventReferenceQuit;
 
     public EconomyModule(EventRegister eventRegister, DomainModelSetup domainModelSetup, JavaPlugin plugin) {
-        super(eventRegister);
+        super(eventRegister, domainModelSetup, plugin);
 
         // setup the repository
         this.playerAccountRepository = new PlayerAccountRepository();
-        this.plugin = plugin;
 
         // setup domain models
         domainModelSetup.setupDomainModel(new Class<?>[]{
@@ -56,6 +55,12 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
 
         // get the economy service provider
         this.economy = plugin.getServer().getServicesManager().getRegistration(Economy.class).getProvider();
+
+        // create the sync handler
+        this.sync = new EconomySync(
+                economy, this.playerAccountRepository,
+                this.configuration.getSyncInterval()
+        );
     }
 
     @Override
@@ -64,6 +69,12 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
         // add player join event
         this.eventReferenceJoin = this.eventRegister.addEvent(PlayerJoinEvent.class, (event) -> this.onPlayerJoin(event));
         this.eventReferenceQuit = this.eventRegister.addEvent(PlayerQuitEvent.class, (event) -> this.onPlayerQuit(event));
+
+        // start sync process if enabled
+        if (this.configuration.isSyncEnabled()) {
+
+            this.sync.startSync();
+        }
 
         // add player leave event
         return true;
@@ -76,6 +87,12 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
         this.eventRegister.removeEvent(PlayerJoinEvent.class, this.eventReferenceJoin);
         this.eventRegister.removeEvent(PlayerQuitEvent.class, this.eventReferenceQuit);
 
+        // stop sync in enabled
+        if (this.configuration.isSyncEnabled()) {
+
+            this.sync.stopSync();
+        }
+
         return true;
     }
 
@@ -86,11 +103,9 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
      */
     private void onPlayerJoin(PlayerJoinEvent event) {
 
-        this.logInfoPrefixed("PLAYER JOIN EVENT! Player:" + event.getPlayer().getName());
-
         // get player domain model
         UUID playerUuid = event.getPlayer().getUniqueId();
-        this.player = this.playerAccountRepository.findByPrimary(PlayerAccount.class, playerUuid);
+        this.player = this.playerAccountRepository.findByPrimary(playerUuid);
 
         // if there is a change in the players balance, sync it
         if (this.player != null && this.player.getBalance() != this.economy.getBalance(event.getPlayer())) {

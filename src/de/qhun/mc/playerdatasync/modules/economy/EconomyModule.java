@@ -149,7 +149,7 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
     public void checkDependencies(DependencyManager dependencyManager) {
 
         // checking vault and eco system
-        if (this.configuration.isEnabled() && !dependencyManager.isEconomyAvailable()) {
+        if (!dependencyManager.isEconomyAvailable()) {
 
             throw new Error(
                     "I could not find any Vault and/or Eco System. Please be sure to add Vault and a compatible ecosystem to your Minecraft server."

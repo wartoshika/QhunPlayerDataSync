@@ -18,7 +18,7 @@ package de.qhun.mc.playerdatasync.modules;
 
 import de.qhun.mc.playerdatasync.DependencyManager;
 import de.qhun.mc.playerdatasync.Main;
-import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
+import de.qhun.mc.playerdatasync.config.ModuleConfiguration;
 import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
 import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.util.Autoload;
@@ -29,7 +29,7 @@ import de.qhun.mc.playerdatasync.util.Autoload;
  * @author Wrath
  * @param <Config>
  */
-public abstract class AbstractModule<Config extends AbstractConfiguration> implements Module {
+public abstract class AbstractModule<Config extends ModuleConfiguration> implements Module {
 
     // the current configuration instance
     protected Config configuration;
@@ -54,7 +54,7 @@ public abstract class AbstractModule<Config extends AbstractConfiguration> imple
      * @param configuration
      */
     @Override
-    public final void setConfiguration(AbstractConfiguration configuration) {
+    public final void setConfiguration(ModuleConfiguration configuration) {
 
         this.configuration = (Config) configuration;
     }

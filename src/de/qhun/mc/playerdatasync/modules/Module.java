@@ -17,7 +17,7 @@
 package de.qhun.mc.playerdatasync.modules;
 
 import de.qhun.mc.playerdatasync.DependencyManager;
-import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
+import de.qhun.mc.playerdatasync.config.ModuleConfiguration;
 
 /**
  *
@@ -29,7 +29,7 @@ public interface Module {
 
     public boolean disable();
 
-    public void setConfiguration(AbstractConfiguration configuration);
+    public void setConfiguration(ModuleConfiguration configuration);
 
     public void checkDependencies(DependencyManager dependencyManager);
 

@@ -18,16 +18,16 @@ package de.qhun.mc.playerdatasync.modules;
 
 import de.qhun.mc.playerdatasync.DependencyManager;
 import de.qhun.mc.playerdatasync.Main;
-import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
+import de.qhun.mc.playerdatasync.config.ModuleConfiguration;
 import de.qhun.mc.playerdatasync.modules.economy.EconomyConfiguration;
-import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
-import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.economy.EconomyModule;
 import de.qhun.mc.playerdatasync.modules.inventory.InventoryConfiguration;
 import de.qhun.mc.playerdatasync.modules.inventory.InventoryModule;
 import de.qhun.mc.playerdatasync.util.DependencyInjection;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -45,7 +45,7 @@ public class ModuleComposer {
     private final DependencyManager dependencyManager;
 
     // storage for all modules
-    private final Map<Class<? extends Module>, Class<? extends AbstractConfiguration>> modules;
+    private final Map<Class<? extends Module>, Class<? extends ModuleConfiguration>> modules;
 
     // storage for all active modules
     private final Map<Class<? extends Module>, Module> activeModules;
@@ -89,17 +89,20 @@ public class ModuleComposer {
         try {
 
             // get the configuration constructor from the map stack
-            Class<AbstractConfiguration> configurationClass = (Class<AbstractConfiguration>) this.modules.get(module);
+            Class<ModuleConfiguration> configurationClass = (Class<ModuleConfiguration>) this.modules.get(module);
 
             // build a dynamic constructor
-            Constructor<AbstractConfiguration> ctor = configurationClass.getDeclaredConstructor(Main.class);
+            Constructor<ModuleConfiguration> ctor = configurationClass.getDeclaredConstructor(Main.class);
 
             // construct the configuration
-            AbstractConfiguration configurationInstance = ctor.newInstance(this.plugin);
+            ModuleConfiguration configurationInstance = ctor.newInstance(this.plugin);
+
+            // check if this module should be enabled
+            if (!configurationInstance.isEnabled()) {
+                return null;
+            }
 
             // now construct the module
-            /*Module moduleInstance = module.getConstructor(EventRegister.class, DomainModelSetup.class, JavaPlugin.class)
-                    .newInstance(this.eventRegister, this.domainModelSetup, this.plugin);*/
             Module moduleInstance = DependencyInjection.build(module);
 
             // attach the configuration
@@ -140,9 +143,7 @@ public class ModuleComposer {
     public void loadAllModules() {
 
         // iterate through all available modules
-        for (Map.Entry<Class<? extends Module>, Class<? extends AbstractConfiguration>> module
-                : this.modules.entrySet()) {
-
+        this.modules.entrySet().forEach((module) -> {
             try {
 
                 // load that module
@@ -159,7 +160,7 @@ public class ModuleComposer {
                 );
                 Main.log.log(Level.SEVERE, error.getMessage(), error);
             }
-        }
+        });
 
     }
 
@@ -180,11 +181,20 @@ public class ModuleComposer {
     public void disableAllModules() {
 
         // iterate through all available modules
-        for (Map.Entry<Class<? extends Module>, Module> module
-                : this.activeModules.entrySet()) {
+        this.activeModules.entrySet().forEach((module) -> {
 
             // load that module
             this.disableModule(module.getKey());
-        }
+        });
+    }
+
+    /**
+     * get all active modules
+     *
+     * @return
+     */
+    public List<Module> getActiveModules() {
+
+        return new ArrayList<>(this.activeModules.values());
     }
 }

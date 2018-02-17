@@ -18,13 +18,14 @@ package de.qhun.mc.playerdatasync.modules.economy;
 
 import de.qhun.mc.playerdatasync.Main;
 import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
+import de.qhun.mc.playerdatasync.config.ModuleConfiguration;
 
 /**
  * a class that represents the current configuration state for economy things
  *
  * @author Wartoshika
  */
-public class EconomyConfiguration extends AbstractConfiguration {
+public class EconomyConfiguration extends AbstractConfiguration implements ModuleConfiguration {
 
     public EconomyConfiguration(Main plugin) {
         super(plugin);
@@ -35,6 +36,7 @@ public class EconomyConfiguration extends AbstractConfiguration {
      *
      * @return
      */
+    @Override
     public boolean isEnabled() {
 
         return this.getConfiguration().getBoolean("economy.enabled");

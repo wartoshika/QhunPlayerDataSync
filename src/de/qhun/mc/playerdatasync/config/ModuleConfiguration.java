@@ -14,30 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.qhun.mc.playerdatasync.modules.inventory;
-
-import de.qhun.mc.playerdatasync.Main;
-import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
-import de.qhun.mc.playerdatasync.config.ModuleConfiguration;
+package de.qhun.mc.playerdatasync.config;
 
 /**
+ * an interface that marks module configurations
  *
  * @author Wrath
  */
-public class InventoryConfiguration extends AbstractConfiguration implements ModuleConfiguration {
-
-    public InventoryConfiguration(Main plugin) {
-        super(plugin);
-    }
+public interface ModuleConfiguration {
 
     /**
-     * is the inventory sync enabled?
+     * is this module enabled?
      *
      * @return
      */
-    @Override
-    public boolean isEnabled() {
+    public boolean isEnabled();
 
-        return this.getConfiguration().getBoolean("inventory.enabled");
-    }
 }

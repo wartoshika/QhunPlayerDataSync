@@ -17,20 +17,42 @@
 package de.qhun.mc.playerdatasync.modules.inventory;
 
 import de.qhun.mc.playerdatasync.modules.AbstractModule;
+import java.util.UUID;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.entity.Player;
 
 /**
+ * the inventory module that stores multiple inventories in the database
  *
  * @author Wrath
  */
 public class InventoryModule extends AbstractModule<InventoryConfiguration> {
 
+    // the repository
+    private PlayerInventoryRepository repository;
+
+    private int eventReferenceJoin;
+    private int eventReferenceQuit;
+
     @Override
     public void construct() {
 
+        // setup the repository
+        this.repository = new PlayerInventoryRepository();
+
+        // setup domain models
+        domainModelSetup.setupDomainModel(new Class<?>[]{
+            PlayerInventory.class
+        });
     }
 
     @Override
     public boolean enable() {
+
+        // add player join event
+        this.eventReferenceJoin = this.eventRegister.addEvent(PlayerJoinEvent.class, (event) -> this.onPlayerJoin(event));
+        this.eventReferenceQuit = this.eventRegister.addEvent(PlayerQuitEvent.class, (event) -> this.onPlayerQuit(event));
 
         return true;
     }
@@ -38,7 +60,99 @@ public class InventoryModule extends AbstractModule<InventoryConfiguration> {
     @Override
     public boolean disable() {
 
+        // log disable 
+        this.logInfoPrefixed("Module is disableing. Saving all inventory data for the online players.");
+
+        // removes the events from the event register
+        this.eventRegister.removeEvent(PlayerJoinEvent.class, this.eventReferenceJoin);
+        this.eventRegister.removeEvent(PlayerQuitEvent.class, this.eventReferenceQuit);
+
+        // save the inventory for all online players
+        this.plugin.getServer().getOnlinePlayers().forEach(this::savePlayerInventory);
+
+        // done
         return true;
+    }
+
+    /**
+     * fires if a player is joining
+     *
+     * @param event
+     */
+    private void onPlayerJoin(PlayerJoinEvent event) {
+
+        // first clear everything in the players inventory!
+        // evil! isn't it?
+        // this will prevent the user from eventually seeing items that
+        // he/she does not own in the server network. this will
+        // meight be visible when the server is laggy and there are not
+        // many ticks per second
+        Player player = event.getPlayer();
+        player.getInventory().clear();
+
+        // now queue a task to get the current inventory from the database
+        this.createAsyncTask(() -> {
+
+            // get every inventory for the player by searching by uuid
+            UUID playerUuid = event.getPlayer().getUniqueId();
+            PlayerInventory inventory = this.repository.findByPrimary(playerUuid);
+
+            // check if the player is allready in the database
+            if (inventory != null) {
+
+                // now replace every inventory
+                player.getInventory().setContents(inventory.getInventory().getContents());
+
+                // replace ender chest
+                if (this.configuration.isEnderChestEnabled()) {
+
+                    player.getEnderChest().setContents(inventory.getEnderChest().getContents());
+                }
+            }
+
+            // wait 10 ticks -> 500 ms
+        }, 10L);
+    }
+
+    /**
+     * fires if a player is quitting
+     *
+     * @param event
+     */
+    private void onPlayerQuit(PlayerQuitEvent event) {
+
+        this.savePlayerInventory(event.getPlayer());
+    }
+
+    /**
+     * saves the inventory
+     *
+     * @param player
+     */
+    private void savePlayerInventory(Player player) {
+
+        // store all inventories
+        // get player from db
+        UUID playerUuid = player.getUniqueId();
+        PlayerInventory inventory = this.repository.findByPrimary(playerUuid);
+
+        // check if a player instance exists
+        if (inventory == null) {
+
+            inventory = new PlayerInventory(player.getUniqueId());
+        }
+
+        // save inventory
+        inventory.setInventory(player.getInventory());
+
+        // ender chest
+        if (this.configuration.isEnderChestEnabled()) {
+
+            inventory.setEnderChest(player.getEnderChest());
+        }
+
+        // store the dataset
+        this.repository.store(inventory);
     }
 
 }

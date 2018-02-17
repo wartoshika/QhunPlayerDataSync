@@ -373,6 +373,7 @@ public class DatabaseExecutor {
                             statement.setObject(i[0], value);
                             break;
                         default:
+                        case Text:
                         case String:
                             statement.setString(i[0], value.toString());
                             break;
@@ -423,6 +424,7 @@ public class DatabaseExecutor {
                 case Object:
                     return result.getObject(column);
                 default:
+                case Text:
                 case String:
                     return result.getString(column);
             }

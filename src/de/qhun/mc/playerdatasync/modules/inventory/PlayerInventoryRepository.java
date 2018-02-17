@@ -16,38 +16,24 @@
  */
 package de.qhun.mc.playerdatasync.modules.inventory;
 
-import de.qhun.mc.playerdatasync.Main;
-import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
-import de.qhun.mc.playerdatasync.config.ModuleConfiguration;
+import de.qhun.mc.playerdatasync.database.GenericRepository;
+import java.util.UUID;
 
 /**
+ * the player inventory repository
  *
  * @author Wrath
  */
-public class InventoryConfiguration extends AbstractConfiguration implements ModuleConfiguration {
-
-    public InventoryConfiguration(Main plugin) {
-        super(plugin);
-    }
+public class PlayerInventoryRepository extends GenericRepository<PlayerInventory, UUID> {
 
     /**
-     * is the inventory sync enabled?
+     * get the player account class
      *
      * @return
      */
     @Override
-    public boolean isEnabled() {
+    protected Class<PlayerInventory> getEntityClass() {
 
-        return this.getConfiguration().getBoolean("inventory.enabled");
-    }
-
-    /**
-     * should the ender chest be synced?
-     *
-     * @return
-     */
-    public boolean isEnderChestEnabled() {
-
-        return this.getConfiguration().getBoolean("inventory.ender_chest");
+        return PlayerInventory.class;
     }
 }

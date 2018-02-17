@@ -19,11 +19,6 @@ economy:
 inventory:
     # should this module be enabled?
     enabled: true
-    # you should enable this flag if there is a plugin that changes
-    # the player's inventory when changing his/her gamemode.
-    # this module will watch for gamemode changes and stores the items
-    # in the correct gamemode
-    different_gamemodes_inventory: false
     # should i sync the ender chest content over differnet servers?
     ender_chest: true
 # the database connection

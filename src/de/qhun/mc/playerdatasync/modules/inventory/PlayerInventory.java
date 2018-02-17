@@ -17,10 +17,13 @@
 package de.qhun.mc.playerdatasync.modules.inventory;
 
 import de.qhun.mc.playerdatasync.database.decorators.Column;
+import de.qhun.mc.playerdatasync.database.decorators.ColumnType;
 import de.qhun.mc.playerdatasync.database.decorators.Entity;
 import de.qhun.mc.playerdatasync.database.decorators.Primary;
 import de.qhun.mc.playerdatasync.database.decorators.Table;
 import java.util.UUID;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 
 /**
  * the player's normal inventory
@@ -34,5 +37,64 @@ public class PlayerInventory {
     @Primary
     @Column(size = 36)
     private UUID uuid;
+
+    @Column(type = ColumnType.Text)
+    private String inventory;
+
+    @Column(type = ColumnType.Text)
+    private String enderChest;
+
+    protected PlayerInventory() {
+    }
+
+    public PlayerInventory(UUID uuid) {
+
+        this.uuid = uuid;
+    }
+
+    public UUID getUuid() {
+
+        return this.uuid;
+    }
+
+    /**
+     * get players normal inventory
+     *
+     * @return
+     */
+    public Inventory getInventory() {
+
+        return InventorySerializer.deserialize(this.inventory, InventoryType.PLAYER);
+    }
+
+    /**
+     * get players ender chest
+     *
+     * @return
+     */
+    public Inventory getEnderChest() {
+
+        return InventorySerializer.deserialize(this.enderChest, InventoryType.ENDER_CHEST);
+    }
+
+    /**
+     * set the normal inventory for the player
+     *
+     * @param inventory
+     */
+    public void setInventory(Inventory inventory) {
+
+        this.inventory = InventorySerializer.serialize(inventory, InventoryType.PLAYER);
+    }
+
+    /**
+     * set the ender chest for the player
+     *
+     * @param enderChest
+     */
+    public void setEnderChest(Inventory enderChest) {
+
+        this.enderChest = InventorySerializer.serialize(enderChest, InventoryType.ENDER_CHEST);
+    }
 
 }

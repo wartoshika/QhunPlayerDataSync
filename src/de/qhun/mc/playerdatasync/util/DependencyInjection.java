@@ -88,4 +88,25 @@ public class DependencyInjection {
 
         return instance;
     }
+
+    /**
+     * register an object at the DI system
+     *
+     * @param className
+     * @param object
+     */
+    public static void register(Class<?> className, Object object) {
+        
+        InstanceCache.setToCache(className, object);
+    }
+
+    /**
+     * register an object at the DI system
+     *
+     * @param object
+     */
+    public static void register(Object object) {
+
+        DependencyInjection.register(object.getClass(), object);
+    }
 }

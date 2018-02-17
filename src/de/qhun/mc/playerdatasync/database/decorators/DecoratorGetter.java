@@ -62,6 +62,13 @@ public class DecoratorGetter {
             }
         }
 
+        // check if there is a super class
+        if (!entity.getSuperclass().equals(Object.class)) {
+
+            // yes, add these fields via recursive function call
+            accessorList.addAll(DecoratorGetter.getFieldsWithDecorator(decorator, entity.getSuperclass()));
+        }
+
         return accessorList;
     }
 
@@ -79,7 +86,7 @@ public class DecoratorGetter {
 
         // iterate through all decorators
         for (Annotation definedDecorator : entity.getDeclaredAnnotations()) {
-            
+
             if (definedDecorator.annotationType().equals(decorator)) {
 
                 return (D) definedDecorator;

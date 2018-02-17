@@ -16,9 +16,12 @@
  */
 package de.qhun.mc.playerdatasync.modules.economy;
 
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Collectors;
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.OfflinePlayer;
 
 /**
  *
@@ -58,7 +61,7 @@ public class EconomySync {
                     // call the timer tick function
                     this.timerTick();
                 }),
-                0, this.intervalSeconds
+                this.intervalSeconds * 1000, this.intervalSeconds * 1000
         );
     }
 
@@ -92,9 +95,48 @@ public class EconomySync {
      */
     private void timerTick() {
 
-        // get all players from the database
-        this.repository.findAll().forEach(player -> {
+        // get all player
+        Map<PlayerAccount, OfflinePlayer> players = this.repository.findAll()
+                .stream()
+                .collect(Collectors.toMap(
+                        account -> account,
+                        account -> account.toBukkitPlayer()
+                ));
 
-        });
+        // take all offline player and calculate the delta
+        players.entrySet().stream()
+                .filter(map -> !map.getValue().isOnline())
+                .forEach(map -> {
+
+                    // get map values
+                    OfflinePlayer bukkitPlayer = map.getValue();
+                    PlayerAccount account = map.getKey();
+
+                    // check if the balance of the player difers from the current
+                    // balance in the database
+                    double playerBalance = this.economy.getBalance(bukkitPlayer);
+                    if (playerBalance != account.getBalance()) {
+
+                        // update the difference into the database
+                        double deltaBalance = playerBalance - account.getBalance();
+                        account.setBalance(account.getBalance() + deltaBalance);
+
+                        // store the new balance
+                        this.repository.store(account);
+
+                        // update the local balance to avoid updating it again
+                        this.economy.withdrawPlayer(bukkitPlayer, playerBalance);
+                        this.economy.depositPlayer(bukkitPlayer, account.getBalance());
+
+                        // print an information
+                        System.out.println(String.format(
+                                "Updated %s's balance by %12.2f",
+                                bukkitPlayer.getName(),
+                                deltaBalance
+                        ));
+                    }
+
+                });
+
     }
 }

@@ -22,6 +22,8 @@ import de.qhun.mc.playerdatasync.database.decorators.Entity;
 import de.qhun.mc.playerdatasync.database.decorators.NotNull;
 import de.qhun.mc.playerdatasync.database.decorators.Primary;
 import de.qhun.mc.playerdatasync.database.decorators.Table;
+import de.qhun.mc.playerdatasync.util.Autoload;
+import org.bukkit.Server;
 import java.util.UUID;
 import org.bukkit.OfflinePlayer;
 
@@ -33,6 +35,12 @@ import org.bukkit.OfflinePlayer;
 @Entity
 @Table
 public class PlayerAccount {
+
+    /**
+     * the server instance for player convertion
+     */
+    @Autoload
+    private Server server;
 
     @Primary
     @Column(size = 36)
@@ -72,5 +80,6 @@ public class PlayerAccount {
      */
     public OfflinePlayer toBukkitPlayer() {
 
+        return this.server.getOfflinePlayer(this.uuid);
     }
 }

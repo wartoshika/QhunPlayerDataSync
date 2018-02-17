@@ -17,11 +17,10 @@
 package de.qhun.mc.playerdatasync.modules.economy;
 
 import de.qhun.mc.playerdatasync.DependencyManager;
-import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
-import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.AbstractModule;
+import de.qhun.mc.playerdatasync.util.Autoload;
+import de.qhun.mc.playerdatasync.util.ServiceProvider;
 import java.util.UUID;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import net.milkbowl.vault.economy.Economy;
@@ -34,16 +33,19 @@ import net.milkbowl.vault.economy.Economy;
 public class EconomyModule extends AbstractModule<EconomyConfiguration> {
 
     // holds the repository to access the player data
-    private final PlayerAccountRepository playerAccountRepository;
-    private final Economy economy;
-    private final EconomySync sync;
+    private PlayerAccountRepository playerAccountRepository;
+    private Economy economy;
+    private EconomySync sync;
     private PlayerAccount player;
+
+    @Autoload
+    private ServiceProvider serviceProvider;
 
     private int eventReferenceJoin;
     private int eventReferenceQuit;
 
-    public EconomyModule(EventRegister eventRegister, DomainModelSetup domainModelSetup, JavaPlugin plugin) {
-        super(eventRegister, domainModelSetup, plugin);
+    @Override
+    public void construct() {
 
         // setup the repository
         this.playerAccountRepository = new PlayerAccountRepository();
@@ -54,7 +56,7 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
         });
 
         // get the economy service provider
-        this.economy = plugin.getServer().getServicesManager().getRegistration(Economy.class).getProvider();
+        this.economy = this.serviceProvider.get(Economy.class);
 
         // create the sync handler
         this.sync = new EconomySync(
@@ -103,17 +105,24 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
      */
     private void onPlayerJoin(PlayerJoinEvent event) {
 
-        // get player domain model
-        UUID playerUuid = event.getPlayer().getUniqueId();
-        this.player = this.playerAccountRepository.findByPrimary(playerUuid);
+        // create an async task to not disturb the user while joining the game
+        // on the main thread of the server
+        this.createAsyncTask(() -> {
 
-        // if there is a change in the players balance, sync it
-        if (this.player != null && this.player.getBalance() != this.economy.getBalance(event.getPlayer())) {
+            // get player domain model
+            UUID playerUuid = event.getPlayer().getUniqueId();
+            this.player = this.playerAccountRepository.findByPrimary(playerUuid);
 
-            // give the player that amount of money he/she owns
-            this.economy.withdrawPlayer(event.getPlayer(), this.economy.getBalance(event.getPlayer()));
-            this.economy.depositPlayer(event.getPlayer(), this.player.getBalance());
-        }
+            // if there is a change in the players balance, sync it
+            if (this.player != null && this.player.getBalance() != this.economy.getBalance(event.getPlayer())) {
+
+                // give the player that amount of money he/she owns
+                this.economy.withdrawPlayer(event.getPlayer(), this.economy.getBalance(event.getPlayer()));
+                this.economy.depositPlayer(event.getPlayer(), this.player.getBalance());
+            }
+
+            // wait 10 ticks, this should equal to 500 milliseconds
+        }, 10L);
     }
 
     /**
@@ -123,21 +132,17 @@ public class EconomyModule extends AbstractModule<EconomyConfiguration> {
      */
     private void onPlayerQuit(PlayerQuitEvent event) {
 
-        // save the money if it is unequal to 0
-        if (this.economy.getBalance(event.getPlayer()) != 0) {
+        // check if a player instance exists
+        if (this.player == null) {
 
-            // check if a player instance exists
-            if (this.player == null) {
-
-                this.player = new PlayerAccount(event.getPlayer().getUniqueId());
-            }
-
-            // get current balance
-            this.player.setBalance(this.economy.getBalance(event.getPlayer()));
-
-            // save the balance
-            this.playerAccountRepository.store(player);
+            this.player = new PlayerAccount(event.getPlayer().getUniqueId());
         }
+
+        // get current balance
+        this.player.setBalance(this.economy.getBalance(event.getPlayer()));
+
+        // save the balance
+        this.playerAccountRepository.store(player);
     }
 
     @Override

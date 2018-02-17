@@ -14,29 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.qhun.mc.playerdatasync.modules;
+package de.qhun.mc.playerdatasync.util;
 
-import de.qhun.mc.playerdatasync.DependencyManager;
-import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
+ * an autoload annotation to get easier read code
  *
  * @author Wrath
  */
-public interface Module {
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Autoload {
 
-    public boolean enable();
-
-    public boolean disable();
-
-    public void setConfiguration(AbstractConfiguration configuration);
-
-    public void checkDependencies(DependencyManager dependencyManager);
-
-    /**
-     * the construct function is the effective constructor of the module and it
-     * will be automaticly called after the dependency injection phase is
-     * completed. the configuration will be available at this time.
-     */
-    public void construct();
 }

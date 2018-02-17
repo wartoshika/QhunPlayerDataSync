@@ -23,6 +23,9 @@ import de.qhun.mc.playerdatasync.modules.economy.EconomyConfiguration;
 import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
 import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.economy.EconomyModule;
+import de.qhun.mc.playerdatasync.modules.inventory.InventoryConfiguration;
+import de.qhun.mc.playerdatasync.modules.inventory.InventoryModule;
+import de.qhun.mc.playerdatasync.util.DependencyInjection;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,8 +43,6 @@ public class ModuleComposer {
     // the plugin and dependency management holder
     private final JavaPlugin plugin;
     private final DependencyManager dependencyManager;
-    private final EventRegister eventRegister;
-    private final DomainModelSetup domainModelSetup;
 
     // storage for all modules
     private final Map<Class<? extends Module>, Class<? extends AbstractConfiguration>> modules;
@@ -54,21 +55,15 @@ public class ModuleComposer {
      *
      * @param plugin
      * @param dependencyManager
-     * @param eventRegister
-     * @param domainModelSetup
      */
     public ModuleComposer(
             JavaPlugin plugin,
-            DependencyManager dependencyManager,
-            EventRegister eventRegister,
-            DomainModelSetup domainModelSetup
+            DependencyManager dependencyManager
     ) {
 
         // var storing
         this.dependencyManager = dependencyManager;
         this.plugin = plugin;
-        this.eventRegister = eventRegister;
-        this.domainModelSetup = domainModelSetup;
 
         // init the stack
         this.modules = new HashMap<>();
@@ -76,7 +71,10 @@ public class ModuleComposer {
 
         // ECONOMY MODULE
         this.modules.put(EconomyModule.class, EconomyConfiguration.class);
-        
+
+        // INVENTORY MODULE
+        this.modules.put(InventoryModule.class, InventoryConfiguration.class);
+
     }
 
     /**
@@ -100,11 +98,22 @@ public class ModuleComposer {
             AbstractConfiguration configurationInstance = ctor.newInstance(this.plugin);
 
             // now construct the module
-            Module moduleInstance = module.getConstructor(EventRegister.class, DomainModelSetup.class, JavaPlugin.class)
-                    .newInstance(this.eventRegister, this.domainModelSetup, this.plugin);
+            /*Module moduleInstance = module.getConstructor(EventRegister.class, DomainModelSetup.class, JavaPlugin.class)
+                    .newInstance(this.eventRegister, this.domainModelSetup, this.plugin);*/
+            Module moduleInstance = DependencyInjection.build(module);
 
             // attach the configuration
             moduleInstance.setConfiguration(configurationInstance);
+
+            // call the constructor
+            try {
+                moduleInstance.construct();
+            } catch (Exception ex) {
+
+                // log the error
+                Main.log.severe("Error while constructing module " + moduleInstance.getClass().getSimpleName());
+                throw ex;
+            }
 
             // check if the module's dependencies are all present
             moduleInstance.checkDependencies(this.dependencyManager);
@@ -117,7 +126,7 @@ public class ModuleComposer {
 
             // all fine!
             return moduleInstance;
-            
+
         } catch (Exception ex) {
 
             // throw error
@@ -133,7 +142,7 @@ public class ModuleComposer {
         // iterate through all available modules
         for (Map.Entry<Class<? extends Module>, Class<? extends AbstractConfiguration>> module
                 : this.modules.entrySet()) {
-            
+
             try {
 
                 // load that module
@@ -151,7 +160,7 @@ public class ModuleComposer {
                 Main.log.log(Level.SEVERE, error.getMessage(), error);
             }
         }
-        
+
     }
 
     /**
@@ -161,7 +170,7 @@ public class ModuleComposer {
      * @return
      */
     public boolean disableModule(Class<? extends Module> module) {
-        
+
         return this.activeModules.get(module).disable();
     }
 

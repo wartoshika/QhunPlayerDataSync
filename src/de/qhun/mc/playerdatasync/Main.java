@@ -16,16 +16,22 @@
  */
 package de.qhun.mc.playerdatasync;
 
+import de.qhun.mc.playerdatasync.database.DatabaseAdapter;
 import de.qhun.mc.playerdatasync.database.DatabaseBackendManager;
 import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
 import de.qhun.mc.playerdatasync.database.GenericRepository;
 import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.ModuleComposer;
+import de.qhun.mc.playerdatasync.util.InstanceCache;
+import de.qhun.mc.playerdatasync.util.ServiceProvider;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.Server;
 
 /**
  * Main class containing the integration with the spigot/bukkit system.
@@ -33,7 +39,7 @@ import org.bukkit.plugin.PluginManager;
  * @author Wartoshika
  */
 public final class Main extends JavaPlugin {
-
+    
     public static Logger log;
     private ConfigurationManager configurationManager;
     private ModuleComposer moduleComposer;
@@ -56,7 +62,7 @@ public final class Main extends JavaPlugin {
         // construct the dependency manager and configuration manager
         this.configurationManager = new ConfigurationManager(this);
         this.eventRegister = new EventRegister(this);
-
+        
         this.databaseBackendManager = new DatabaseBackendManager(this, configurationManager);
 
         // setup routines
@@ -67,19 +73,25 @@ public final class Main extends JavaPlugin {
 
             // load current configuration
             if (!this.configurationManager.loadConfiguration()) {
-
+                
                 throw new Error("Configuration load error. Check syntax!");
             }
 
             // enable database connection
             this.databaseBackendManager.connectToDatabase();
-            GenericRepository.setDatabaseAdapter(this.databaseBackendManager.getDatabaseAdapter());
+            DatabaseAdapter adapter = this.databaseBackendManager.getDatabaseAdapter();
+            GenericRepository.setDatabaseAdapter(adapter);
+
+            // instantiate domain model setup
+            this.domainModelSetup = new DomainModelSetup(adapter);
 
             // enable the module composing
-            this.domainModelSetup = new DomainModelSetup(this.databaseBackendManager.getDatabaseAdapter());
             this.moduleComposer = new ModuleComposer(
-                    this, new DependencyManager(this), this.eventRegister, this.domainModelSetup
+                    this, new DependencyManager(this)
             );
+
+            // Setup DI
+            this.setupDependencyInjection();
 
             // enable bukkit events
             this.eventRegister.registerAvailableBukkitEvents();
@@ -118,8 +130,34 @@ public final class Main extends JavaPlugin {
      * @return
      */
     public ConfigurationManager getConfigurationManager() {
-
+        
         return this.configurationManager;
     }
 
+    /**
+     * setup the DI
+     */
+    private void setupDependencyInjection() {
+
+        // enable @Autoload decorator by putting some instances to the cache
+        Map<Class<?>, Object> reflectByInterface = new HashMap<>();
+        reflectByInterface.put(Server.class, this.getServer());
+        reflectByInterface.put(PluginManager.class, Bukkit.getPluginManager());
+
+        // add by interface
+        InstanceCache.setToCache(reflectByInterface);
+
+        // add as normal classes
+        InstanceCache.setToCache(new Object[]{
+            this.configurationManager,
+            this.moduleComposer,
+            this.databaseBackendManager,
+            this.eventRegister,
+            this.domainModelSetup,
+            new ServiceProvider(this),
+            this.databaseBackendManager.getDatabaseAdapter(),
+            this
+        });
+    }
+    
 }

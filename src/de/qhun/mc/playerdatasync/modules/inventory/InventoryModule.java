@@ -16,10 +16,7 @@
  */
 package de.qhun.mc.playerdatasync.modules.inventory;
 
-import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
-import de.qhun.mc.playerdatasync.events.EventRegister;
 import de.qhun.mc.playerdatasync.modules.AbstractModule;
-import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  *
@@ -27,18 +24,21 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class InventoryModule extends AbstractModule<InventoryConfiguration> {
 
-    public InventoryModule(EventRegister eventRegister, DomainModelSetup domainModelSetup, JavaPlugin plugin) {
-        super(eventRegister, domainModelSetup, plugin);
+    @Override
+    public void construct() {
+
     }
 
     @Override
     public boolean enable() {
 
+        return true;
     }
 
     @Override
     public boolean disable() {
 
+        return true;
     }
 
 }

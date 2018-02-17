@@ -293,6 +293,19 @@ public class DatabaseExecutor {
     }
 
     /**
+     * get from table
+     *
+     * @param <T>
+     * @param tableName
+     * @param entity
+     * @return
+     */
+    public <T extends Object> List<List<DomainModelAttribute>> get(String tableName, Class<T> entity) {
+
+        return this.get(tableName, entity, new ArrayList<>());
+    }
+
+    /**
      * executes the given statement
      *
      * @param statement

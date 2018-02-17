@@ -21,7 +21,7 @@ import de.qhun.mc.playerdatasync.Main;
 import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
 import de.qhun.mc.playerdatasync.database.domainmodel.DomainModelSetup;
 import de.qhun.mc.playerdatasync.events.EventRegister;
-import org.bukkit.plugin.java.JavaPlugin;
+import de.qhun.mc.playerdatasync.util.Autoload;
 
 /**
  * an abstraction layer for modules
@@ -33,16 +33,19 @@ public abstract class AbstractModule<Config extends AbstractConfiguration> imple
 
     // the current configuration instance
     protected Config configuration;
-    protected final EventRegister eventRegister;
-    protected final JavaPlugin plugin;
-    protected final DomainModelSetup domainModelSetup;
 
-    public AbstractModule(EventRegister eventRegister, DomainModelSetup domainModelSetup, JavaPlugin plugin) {
+    @Autoload
+    protected EventRegister eventRegister;
+
+    @Autoload
+    protected Main plugin;
+
+    @Autoload
+    protected DomainModelSetup domainModelSetup;
+
+    public AbstractModule() {
 
         this.logInfoPrefixed("Enable module.");
-        this.eventRegister = eventRegister;
-        this.plugin = plugin;
-        this.domainModelSetup = domainModelSetup;
     }
 
     /**
@@ -51,7 +54,7 @@ public abstract class AbstractModule<Config extends AbstractConfiguration> imple
      * @param configuration
      */
     @Override
-    public void setConfiguration(AbstractConfiguration configuration) {
+    public final void setConfiguration(AbstractConfiguration configuration) {
 
         this.configuration = (Config) configuration;
     }
@@ -81,5 +84,17 @@ public abstract class AbstractModule<Config extends AbstractConfiguration> imple
                         message
                 )
         );
+    }
+
+    /**
+     * run an asynchronous task with the given delay
+     *
+     * @param r
+     * @param delayInTicks
+     */
+    protected void createAsyncTask(Runnable r, long delayInTicks) {
+
+        // call the bukkit task scheduler api
+        this.plugin.getServer().getScheduler().runTaskLaterAsynchronously(this.plugin, r, delayInTicks);
     }
 }

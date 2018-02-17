@@ -6,10 +6,11 @@ economy:
     # if a player if offline, should i check if on this server is any
     # activity on the player's money? example could be a shop that automaticly
     # deposits money to the players bank account
+    # !!!!! CURRENTLY NOT WORKING !!!!!!!!!!!
     sync:
         # should the sync be enabled? if not, the money will only be synced during 
         # player join and player quit
-        enabled: true
+        enabled: false
         # the interval in seconds to poll if there is any change.
         # this meight cause performance issues if this value is to low
         interval: 300

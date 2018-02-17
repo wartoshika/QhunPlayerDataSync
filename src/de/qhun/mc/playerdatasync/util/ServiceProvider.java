@@ -14,29 +14,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.qhun.mc.playerdatasync.modules;
+package de.qhun.mc.playerdatasync.util;
 
-import de.qhun.mc.playerdatasync.DependencyManager;
-import de.qhun.mc.playerdatasync.config.AbstractConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
+ * a class that provides bukkit services to modules
  *
  * @author Wrath
  */
-public interface Module {
+public class ServiceProvider {
 
-    public boolean enable();
+    // the plugin holder
+    private final JavaPlugin plugin;
 
-    public boolean disable();
+    public ServiceProvider(JavaPlugin plugin) {
 
-    public void setConfiguration(AbstractConfiguration configuration);
-
-    public void checkDependencies(DependencyManager dependencyManager);
+        this.plugin = plugin;
+    }
 
     /**
-     * the construct function is the effective constructor of the module and it
-     * will be automaticly called after the dependency injection phase is
-     * completed. the configuration will be available at this time.
+     * get a class from the service provider
+     *
+     * @param <T>
+     * @param className
+     * @return
      */
-    public void construct();
+    public <T> T get(Class<T> className) {
+
+        return this.plugin.getServer().getServicesManager().getRegistration(className).getProvider();
+    }
+
 }

@@ -24,6 +24,7 @@ import de.qhun.mc.playerdatasync.database.decorators.DecoratorGetter;
 import de.qhun.mc.playerdatasync.database.decorators.NotNull;
 import de.qhun.mc.playerdatasync.database.decorators.Primary;
 import de.qhun.mc.playerdatasync.database.decorators.Table;
+import de.qhun.mc.playerdatasync.util.DependencyInjection;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -159,23 +160,6 @@ public class DecoratedDomainModel {
      */
     public static <Entity extends Object> Entity createEmptyInstance(Class<Entity> entity) {
 
-        // get the protected constructor
-        for (Constructor<?> ctor : entity.getDeclaredConstructors()) {
-
-            // get 0 parameter constructor
-            if (ctor.getParameterCount() == 0) {
-
-                ctor.setAccessible(true);
-                try {
-                    return (Entity) ctor.newInstance();
-                } catch (Exception ex) {
-
-                    Main.log.severe("Try to instantiate a domain model without an empty constructor!");
-                    Main.log.log(Level.SEVERE, ex.getMessage(), ex);
-                }
-            }
-        }
-
-        return null;
+        return DependencyInjection.build(entity);
     }
 }

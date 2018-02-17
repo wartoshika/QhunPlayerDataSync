@@ -106,7 +106,27 @@ public abstract class GenericRepository<Entity, Primary> implements Repository<E
     @Override
     public List<Entity> findAll() {
 
-        return new ArrayList<>();
+        // get all entities
+        List<List<DomainModelAttribute>> rows = GenericRepository.database.query().get(
+                DecoratedDomainModel.getTableName(this.getEntityClass()),
+                this.getEntityClass()
+        );
+
+        // eneity list
+        List<Entity> entities = new ArrayList<>();
+
+        // null for an empty result set
+        if (rows.isEmpty()) {
+            return entities;
+        }
+
+        // transform all
+        rows.forEach(row -> {
+
+            entities.add(this.transformResultToEntity(row));
+        });
+
+        return entities;
     }
 
     /**

@@ -1,6 +1,10 @@
 QhunPlayerDataSync
 ==================
 
+**Important**: This plugin is currently under heavy development. Please wait for the release or the
+snapshot might be buggy. Use at our own risk. I can not recommend to run this plugin on a live server enviroment!
+
+
 This is a plugin for bukkit/spigot server that allows to share player related data between
 different server. It is designed to work with bungee cord and provides a lot of freedom when
 it comes to configuration.

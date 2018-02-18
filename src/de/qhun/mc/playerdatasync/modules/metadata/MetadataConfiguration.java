@@ -135,6 +135,16 @@ public class MetadataConfiguration extends AbstractConfiguration implements Modu
     }
 
     /**
+     * is current hold item sync enabled?
+     *
+     * @return
+     */
+    public boolean isCurrentHoldItemEnabled() {
+
+        return this.getConfiguration().getBoolean("metadata.currentHoldItem");
+    }
+
+    /**
      * checks if at least one category is enabled
      *
      * @return
@@ -148,6 +158,7 @@ public class MetadataConfiguration extends AbstractConfiguration implements Modu
                 || this.isFlightEnabled()
                 || this.isPotionEffectEnabled()
                 || this.isFireEnabled()
-                || this.isAirEnabled();
+                || this.isAirEnabled()
+                || this.isCurrentHoldItemEnabled();
     }
 }

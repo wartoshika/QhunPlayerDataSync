@@ -82,6 +82,9 @@ public class PlayerMetadata {
     @Column(type = ColumnType.Integer)
     private int air;
 
+    @Column(type = ColumnType.Integer)
+    private int holdItemSlot;
+
     protected PlayerMetadata() {
     }
 
@@ -232,6 +235,16 @@ public class PlayerMetadata {
     }
 
     /**
+     * get the current hold item slot
+     *
+     * @return
+     */
+    public int getHoldItemSlot() {
+
+        return holdItemSlot;
+    }
+
+    /**
      * set the current health
      *
      * @param health
@@ -349,5 +362,15 @@ public class PlayerMetadata {
     public void setAir(int air) {
 
         this.air = air;
+    }
+
+    /**
+     * set the currently hold item slot
+     *
+     * @param holdItemSlot
+     */
+    public void setHoldItemSlot(int holdItemSlot) {
+
+        this.holdItemSlot = holdItemSlot;
     }
 }

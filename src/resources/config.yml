@@ -45,6 +45,7 @@ metadata:
     potion_effects: true
     fire: true
     air: true
+    currentHoldItem: true
 # the database connection
 database:
     # set the maximun allowed threads for transactions on the database

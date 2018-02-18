@@ -36,10 +36,10 @@ public class MetadataModule extends AbstractModule<MetadataConfiguration> {
 
     // the repository
     private PlayerMetadataRepository repository;
-
+    
     private UUID eventReferenceJoin;
     private UUID eventReferenceQuit;
-
+    
     @Override
     public void construct() {
 
@@ -51,17 +51,17 @@ public class MetadataModule extends AbstractModule<MetadataConfiguration> {
             PlayerMetadata.class
         });
     }
-
+    
     @Override
     public boolean enable() {
 
         // add player join event
         this.eventReferenceJoin = this.eventRegister.addEvent(PlayerJoinEvent.class, this::onPlayerJoin);
         this.eventReferenceQuit = this.eventRegister.addEvent(PlayerQuitEvent.class, this::onPlayerQuit);
-
+        
         return true;
     }
-
+    
     @Override
     public boolean disable() {
 
@@ -74,7 +74,7 @@ public class MetadataModule extends AbstractModule<MetadataConfiguration> {
 
         // save the metadata for all online players
         this.plugin.getServer().getOnlinePlayers().forEach(this::savePlayerMetadata);
-
+        
         return true;
     }
 
@@ -84,7 +84,7 @@ public class MetadataModule extends AbstractModule<MetadataConfiguration> {
      * @param event
      */
     private void onPlayerJoin(PlayerJoinEvent event) {
-
+        
         Player player = event.getPlayer();
 
         // get player domain model
@@ -98,51 +98,56 @@ public class MetadataModule extends AbstractModule<MetadataConfiguration> {
 
             // set all data from the database to the bukkit api
             if (this.configuration.isHealthEnabled()) {
-
+                
                 player.setHealthScale(playerMetadata.getHealthScale());
                 player.setHealth(playerMetadata.getHealth());
             }
-
+            
             if (this.configuration.isXpEnabled()) {
-
+                
                 player.setLevel(playerMetadata.getLevel());
                 player.setExp(playerMetadata.getXp());
             }
-
+            
             if (this.configuration.isFoodEnabled()) {
-
+                
                 player.setFoodLevel(playerMetadata.getFood());
                 player.setSaturation(playerMetadata.getSaturation());
                 player.setExhaustion(playerMetadata.getExhaustion());
             }
-
+            
             if (this.configuration.isGamemodeEnabled()) {
-
+                
                 player.setGameMode(playerMetadata.getGamemode());
             }
-
+            
             if (this.configuration.isFlightEnabled()) {
-
+                
                 player.setAllowFlight(playerMetadata.isFlight());
             }
-
+            
             if (this.configuration.isPotionEffectEnabled()) {
 
                 // remove all effects first
                 player.getActivePotionEffects().forEach(e -> player.removePotionEffect(e.getType()));
                 player.addPotionEffects((Collection<PotionEffect>) playerMetadata.getPotionEffects());
             }
-
+            
             if (this.configuration.isFireEnabled()) {
-
+                
                 player.setFireTicks(playerMetadata.getFireTicks());
             }
-
+            
             if (this.configuration.isAirEnabled()) {
-
+                
                 player.setRemainingAir(playerMetadata.getAir());
             }
-
+            
+            if (this.configuration.isCurrentHoldItemEnabled()) {
+                
+                player.getInventory().setHeldItemSlot(playerMetadata.getHoldItemSlot());
+            }
+            
         }
     }
 
@@ -152,7 +157,7 @@ public class MetadataModule extends AbstractModule<MetadataConfiguration> {
      * @param event
      */
     private void onPlayerQuit(PlayerQuitEvent event) {
-
+        
         this.savePlayerMetadata(event.getPlayer());
     }
 
@@ -171,7 +176,7 @@ public class MetadataModule extends AbstractModule<MetadataConfiguration> {
 
         // check if a player instance exists
         if (playerMetadata == null) {
-
+            
             playerMetadata = new PlayerMetadata(
                     player.getUniqueId(), this.configuration.getBranchName()
             );
@@ -179,51 +184,56 @@ public class MetadataModule extends AbstractModule<MetadataConfiguration> {
 
         // now set all data
         if (this.configuration.isHealthEnabled()) {
-
+            
             playerMetadata.setHealth(player.getHealth());
             playerMetadata.setHealthScale(player.getHealthScale());
         }
-
+        
         if (this.configuration.isXpEnabled()) {
-
+            
             playerMetadata.setLevel(player.getLevel());
             playerMetadata.setXp(player.getExp());
         }
-
+        
         if (this.configuration.isFoodEnabled()) {
-
+            
             playerMetadata.setFood(player.getFoodLevel());
             playerMetadata.setSaturation(player.getSaturation());
             playerMetadata.setExhaustion(player.getExhaustion());
         }
-
+        
         if (this.configuration.isGamemodeEnabled()) {
-
+            
             playerMetadata.setGamemode(player.getGameMode());
         }
-
+        
         if (this.configuration.isFlightEnabled()) {
-
+            
             playerMetadata.setFlight(player.getAllowFlight());
         }
-
+        
         if (this.configuration.isPotionEffectEnabled()) {
-
+            
             playerMetadata.setPotionEffects((List<PotionEffect>) player.getActivePotionEffects());
         }
-
+        
         if (this.configuration.isFireEnabled()) {
-
+            
             playerMetadata.setFireTicks(player.getFireTicks());
         }
-
+        
         if (this.configuration.isAirEnabled()) {
-
+            
             playerMetadata.setAir(player.getRemainingAir());
+        }
+        
+        if (this.configuration.isCurrentHoldItemEnabled()) {
+            
+            playerMetadata.setHoldItemSlot(player.getInventory().getHeldItemSlot());
         }
 
         // save to database
         this.repository.store(playerMetadata);
     }
-
+    
 }

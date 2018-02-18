@@ -23,6 +23,8 @@ import de.qhun.mc.playerdatasync.modules.economy.EconomyConfiguration;
 import de.qhun.mc.playerdatasync.modules.economy.EconomyModule;
 import de.qhun.mc.playerdatasync.modules.inventory.InventoryConfiguration;
 import de.qhun.mc.playerdatasync.modules.inventory.InventoryModule;
+import de.qhun.mc.playerdatasync.modules.metadata.MetadataConfiguration;
+import de.qhun.mc.playerdatasync.modules.metadata.MetadataModule;
 import de.qhun.mc.playerdatasync.util.DependencyInjection;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -69,12 +71,12 @@ public class ModuleComposer {
         this.modules = new HashMap<>();
         this.activeModules = new HashMap<>();
 
-        // ECONOMY MODULE
+        // ############################################
+        // THE LIST OF MODULES THAT SHOULD BE ACTIVATED
+        // ############################################
         this.modules.put(EconomyModule.class, EconomyConfiguration.class);
-
-        // INVENTORY MODULE
         this.modules.put(InventoryModule.class, InventoryConfiguration.class);
-
+        this.modules.put(MetadataModule.class, MetadataConfiguration.class);
     }
 
     /**

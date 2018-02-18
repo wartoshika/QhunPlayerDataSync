@@ -20,12 +20,31 @@ inventory:
     # should this module be enabled?
     enabled: true
     # every server instance with the same branch name will share the inventory data.
-    # different branches provide the possibility of having miltiple gamemodes available.
+    # different branches provide the possibility of having multiple gamemodes available.
     # this also effects the ender chest!
     # the name of the branch should have max 24 chars!
     branch: main
     # should i sync the ender chest content over differnet servers?
     ender_chest: true
+# the metadata module that allowes to share player's metadata like air, gamemode, potion effects
+# and other data between servers
+metadata:
+    # should this module be enabled?
+    enabled: true
+    # every server instance with the same branch name will share the metadata.
+    # different branches provide the possibility of having multiple gamemodes available.
+    # the name of the branch should have max 24 chars!
+    branch: main
+    # the list below allows to toggle different metadata to be synced to servers on this
+    # branch. these values are categories. Example: xp includes current xp and the level
+    health: true
+    xp: true
+    food: true
+    gamemode: false
+    flight: true
+    potion_effects: true
+    fire: true
+    air: true
 # the database connection
 database:
     # set the maximun allowed threads for transactions on the database

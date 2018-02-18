@@ -57,6 +57,12 @@ public class MysqlFields implements DialectFields {
             case Text:
                 types.add("TEXT");
                 break;
+            case Float:
+                types.add("FLOAT");
+                break;
+            case Boolean:
+                types.add("BIT(1)");
+                break;
             default:
             case String:
                 types.add("VARCHAR(" + attribute.size + ")");

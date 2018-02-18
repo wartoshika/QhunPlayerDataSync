@@ -363,6 +363,9 @@ public class DatabaseExecutor {
                         case Double:
                             statement.setDouble(i[0], (double) value);
                             break;
+                        case Float:
+                            statement.setFloat(i[0], (float) value);
+                            break;
                         case Integer:
                             statement.setInt(i[0], (int) value);
                             break;
@@ -371,6 +374,9 @@ public class DatabaseExecutor {
                             break;
                         case Object:
                             statement.setObject(i[0], value);
+                            break;
+                        case Boolean:
+                            statement.setBoolean(i[0], (boolean) value);
                             break;
                         default:
                         case Text:
@@ -417,10 +423,14 @@ public class DatabaseExecutor {
                     return result.getBigDecimal(column);
                 case Double:
                     return result.getDouble(column);
+                case Float:
+                    return result.getFloat(column);
                 case Integer:
                     return result.getInt(column);
                 case Date:
                     return result.getDate(column);
+                case Boolean:
+                    return result.getBoolean(column);
                 case Object:
                     return result.getObject(column);
                 default:

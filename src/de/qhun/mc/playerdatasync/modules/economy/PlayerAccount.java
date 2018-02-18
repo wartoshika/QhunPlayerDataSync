@@ -43,6 +43,7 @@ public class PlayerAccount {
     private Server server;
 
     @Primary
+    @NotNull
     @Column(size = 36)
     private UUID uuid;
 

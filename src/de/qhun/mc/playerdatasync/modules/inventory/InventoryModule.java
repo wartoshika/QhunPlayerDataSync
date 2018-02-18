@@ -52,8 +52,8 @@ public class InventoryModule extends AbstractModule<InventoryConfiguration> {
     public boolean enable() {
 
         // add player join event
-        this.eventReferenceJoin = this.eventRegister.addEvent(PlayerJoinEvent.class, (event) -> this.onPlayerJoin(event));
-        this.eventReferenceQuit = this.eventRegister.addEvent(PlayerQuitEvent.class, (event) -> this.onPlayerQuit(event));
+        this.eventReferenceJoin = this.eventRegister.addEvent(PlayerJoinEvent.class, this::onPlayerJoin);
+        this.eventReferenceQuit = this.eventRegister.addEvent(PlayerQuitEvent.class, this::onPlayerQuit);
 
         return true;
     }

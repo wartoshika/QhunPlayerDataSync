@@ -37,11 +37,12 @@ public class PlayerInventory {
 
     @Primary(index = 0)
     @Column(size = 36)
+    @NotNull
     private UUID uuid;
 
     @Primary(index = 1)
-    @NotNull
     @Column(size = 24)
+    @NotNull
     private String branch;
 
     @Column(type = ColumnType.Text)
@@ -59,6 +60,11 @@ public class PlayerInventory {
         this.branch = branch;
     }
 
+    /**
+     * get the uuid
+     *
+     * @return
+     */
     public UUID getUuid() {
 
         return this.uuid;
@@ -113,15 +119,4 @@ public class PlayerInventory {
 
         this.enderChest = InventorySerializer.serialize(enderChest, InventoryType.ENDER_CHEST);
     }
-
-    /**
-     * set the branch name
-     *
-     * @param branch
-     */
-    public void setBranch(String branch) {
-
-        this.branch = branch;
-    }
-
 }

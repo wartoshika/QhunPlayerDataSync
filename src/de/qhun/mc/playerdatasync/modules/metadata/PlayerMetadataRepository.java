@@ -14,22 +14,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.qhun.mc.playerdatasync.database.decorators;
+package de.qhun.mc.playerdatasync.modules.metadata;
+
+import de.qhun.mc.playerdatasync.database.GenericRepository;
+import java.util.List;
 
 /**
- * all supported data types for storing information
+ * the repository for player metadata
  *
  * @author Wrath
  */
-public enum ColumnType {
+public class PlayerMetadataRepository extends GenericRepository<PlayerMetadata, List<?>> {
 
-    String,
-    Integer,
-    Double,
-    Float,
-    BigDecimal,
-    Date,
-    Object,
-    Text,
-    Boolean
+    @Override
+    protected Class<PlayerMetadata> getEntityClass() {
+
+        return PlayerMetadata.class;
+    }
+
 }
